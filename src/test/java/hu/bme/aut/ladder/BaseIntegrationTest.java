@@ -16,7 +16,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @WebAppConfiguration
 @IntegrationTest("server.port=0")
 @DirtiesContext
-public abstract class BaseWebApplicationTest {
+public abstract class BaseIntegrationTest {
 
     /**
      * Port for the Tomcat launched for unit testing
