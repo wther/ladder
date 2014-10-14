@@ -63,7 +63,7 @@ Technológiai terv
 -----------------
 A webalkalmazást kliens szerver minta szerint fogjuk megvalósítani, a kliensek közötti kommunikáció a szerveren keresztül történik. 
 
-![A kliens és a szerver oldal rétegei](https://raw.githubusercontent.com/wther/pronun/master/docs/multitier-application.png)
+![A kliens és a szerver oldal rétegei](https://raw.githubusercontent.com/wther/ladder/master/docs/multitier-application.png)
 
 ### Kliens oldal
 
