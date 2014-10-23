@@ -35,29 +35,17 @@ public class StateChangeEntity {
     private int sequenceNumber;
     
     /**
-     * Player's X position before
+     * Player's position before
      */
     @Column
-    private int beforeX;
+    private int beforeAt;
     
     /**
-     * Player's Y position before
+     * Player's position after
      */
     @Column
-    private int beforeY;
-    
-    /**
-     * Player's X position after
-     */
-    @Column
-    private int afterX;
-    
-    /**
-     * Player's Y position after
-     */
-    @Column
-    private int afterY;
-    
+    private int afterAt;
+       
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
     private PlayerEntity player;
 
@@ -77,36 +65,20 @@ public class StateChangeEntity {
         this.sequenceNumber = sequenceNumber;
     }
 
-    public int getBeforeX() {
-        return beforeX;
+    public int getBeforeAt() {
+        return beforeAt;
     }
 
-    public void setBeforeX(int beforeX) {
-        this.beforeX = beforeX;
+    public void setBeforeAt(int beforeAt) {
+        this.beforeAt = beforeAt;
     }
 
-    public int getBeforeY() {
-        return beforeY;
+    public int getAfterAt() {
+        return afterAt;
     }
 
-    public void setBeforeY(int beforeY) {
-        this.beforeY = beforeY;
-    }
-
-    public int getAfterX() {
-        return afterX;
-    }
-
-    public void setAfterX(int afterX) {
-        this.afterX = afterX;
-    }
-
-    public int getAfterY() {
-        return afterY;
-    }
-
-    public void setAfterY(int afterY) {
-        this.afterY = afterY;
+    public void setAfterAt(int afterAt) {
+        this.afterAt = afterAt;
     }
 
     public PlayerEntity getPlayer() {

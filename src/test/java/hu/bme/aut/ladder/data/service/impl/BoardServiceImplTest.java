@@ -1,7 +1,8 @@
-package hu.bme.aut.ladder.data.service;
+package hu.bme.aut.ladder.data.service.impl;
 
 import static org.junit.Assert.*;
 import hu.bme.aut.ladder.BaseIntegrationTest;
+import hu.bme.aut.ladder.data.service.BoardService;
 import hu.bme.aut.ladder.data.service.impl.BoardServiceImpl;
 
 import org.junit.Test;

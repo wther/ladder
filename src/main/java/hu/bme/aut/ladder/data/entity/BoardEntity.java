@@ -39,17 +39,10 @@ public class BoardEntity {
     private Long boardId;
 
     /**
-     * Dimension X for the board
+     * Size of the board
      */
     @Column
-    private int width;
-
-    /**
-     * Dimension Y for the board
-     */
-    @Column
-    private int height;
-
+    private int boardSize;
     /**
      * Snakes &amp; Ladders on the board
      */
@@ -77,20 +70,12 @@ public class BoardEntity {
         this.boardId = boardId;
     }
 
-    public int getWidth() {
-        return width;
+    public int getBoardSize() {
+        return boardSize;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
+    public void setBoardSize(int boardSize) {
+        this.boardSize = boardSize;
     }
 
     public List<TunnelEntity> getTunnels() {

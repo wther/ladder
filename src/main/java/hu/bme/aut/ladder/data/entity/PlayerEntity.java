@@ -26,16 +26,10 @@ public class PlayerEntity {
     private Long playerId;
     
     /**
-     * Player's horizontal position
+     * Player's position
      */
     @Column
-    private int x;
-    
-    /**
-     * Player's vertical position
-     */
-    @Column
-    private int y;
+    private int position;
 
     public Long getPlayerId() {
         return playerId;
@@ -45,19 +39,11 @@ public class PlayerEntity {
         this.playerId = playerId;
     }
 
-    public int getX() {
-        return x;
+    public int getPosition() {
+        return position;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public void setPosition(int position) {
+        this.position = position;
     }
 }

@@ -28,28 +28,17 @@ public class TunnelEntity {
     private Long tunnelId;
     
     /**
-     * Horizontal coordinate of the start
+     * Coordinate of the start
      */
     @Column
-    private int fromX;
+    private int fromField;
     
     /**
      * Vertical coordinate of the start
      */
     @Column
-    private int fromY;
+    private int toField;
     
-    /**
-     * Horizontal coordinate of the end
-     */
-    @Column
-    private int toX;
-    
-    /**
-     * Vertical coordinate of the end
-     */
-    @Column
-    private int toY;
     
     /**
      * Type of the enumeration
@@ -71,7 +60,7 @@ public class TunnelEntity {
          * Ladders are good
          */
         LADDER
-    };
+    }
 
     public Long getTunnelId() {
         return tunnelId;
@@ -81,36 +70,20 @@ public class TunnelEntity {
         this.tunnelId = tunnelId;
     }
 
-    public int getFromX() {
-        return fromX;
+    public int getFromField() {
+        return fromField;
     }
 
-    public void setFromX(int fromX) {
-        this.fromX = fromX;
+    public void setFromField(int fromField) {
+        this.fromField = fromField;
     }
 
-    public int getFromY() {
-        return fromY;
+    public int getToField() {
+        return toField;
     }
 
-    public void setFromY(int fromY) {
-        this.fromY = fromY;
-    }
-
-    public int getToX() {
-        return toX;
-    }
-
-    public void setToX(int toX) {
-        this.toX = toX;
-    }
-
-    public int getToY() {
-        return toY;
-    }
-
-    public void setToY(int toY) {
-        this.toY = toY;
+    public void setToField(int toField) {
+        this.toField = toField;
     }
 
     public Type getType() {

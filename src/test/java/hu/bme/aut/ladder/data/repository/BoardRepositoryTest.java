@@ -40,8 +40,7 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
 
         // Arrange
         BoardEntity board = new BoardEntity();
-        board.setWidth(10);
-        board.setHeight(10);
+        board.setBoardSize(100);
 
         // Act
         boardRepository.save(board);
@@ -58,12 +57,10 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
         
         // Arrange
         BoardEntity board = new BoardEntity();
-        board.setWidth(10);
-        board.setHeight(10);
+        board.setBoardSize(100);
         
         PlayerEntity player = new PlayerEntity();
-        player.setX(5);
-        player.setY(4);
+        player.setPosition(5);
         
         board.setPlayers(Arrays.asList(player));
         
@@ -74,8 +71,7 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
         BoardEntity retVal = boardRepository.findAll().get(0);
         assertNotNull(retVal.getPlayers());
         assertEquals("Expected one player", 1, retVal.getPlayers().size());
-        assertEquals(player.getX(), retVal.getPlayers().get(0).getX());
-        assertEquals(player.getY(), retVal.getPlayers().get(0).getY());
+        assertEquals(player.getPosition(), retVal.getPlayers().get(0).getPosition());
     }
     
     /**
@@ -86,13 +82,12 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
         
         // Arrange
         BoardEntity board = new BoardEntity();
-        board.setWidth(10);
-        board.setHeight(10);
+        board.setBoardSize(100);
         
-        TunnelEntity snake = mockTunnel(4,5,2,3);
+        TunnelEntity snake = mockTunnel(4,2);
         snake.setType(TunnelEntity.Type.SNAKE);
         
-        TunnelEntity ladder = mockTunnel(6,7,8,5);
+        TunnelEntity ladder = mockTunnel(6,8);
         ladder.setType(TunnelEntity.Type.LADDER);
         
         board.setTunnels(Arrays.asList(snake, ladder));
@@ -116,8 +111,7 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
         
          // Arrange
         BoardEntity board = new BoardEntity();
-        board.setWidth(10);
-        board.setHeight(10);
+        board.setBoardSize(100);
         
         StateChangeEntity first = new StateChangeEntity();
         first.setSequenceNumber(100);
@@ -148,18 +142,12 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
     /**
      * Create mock tunnel
      * 
-     * @param fromX
-     * @param fromY
-     * @param toX
-     * @param toY
      * @return 
      */
-    private static TunnelEntity mockTunnel(int fromX, int fromY, int toX, int toY){
+    private static TunnelEntity mockTunnel(int from, int to){
         TunnelEntity retVal = new TunnelEntity();
-        retVal.setFromX(fromX);
-        retVal.setFromY(fromY);
-        retVal.setToX(toX);
-        retVal.setToY(toY);
+        retVal.setFromField(from);
+        retVal.setToField(to);
         return retVal;
     }
 }
