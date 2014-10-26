@@ -16,6 +16,7 @@ public interface BoardStrategy {
      * @param board Board to modify
      * @param player Initiator of the action
      * @param action Action to be taken
+     * 
      * @throws hu.bme.aut.ladder.strategy.BoardActionNotPermitted
      */
     void executeAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted;
