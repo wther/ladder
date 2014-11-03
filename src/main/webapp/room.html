@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+	<link rel="stylesheet" href="css/room.css">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<script src="js/kinetic-v5.1.0.min.js"></script>
+	<script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+	
+	<script src="js/room.js"></script>
+	<title>Snakes &amp; Ladders</title>
+</head>
+<body>
+	<header>
+		<h1 id="mainHeader">Snakes &amp; Ladders Room</h1>
+		<div id="iconSnakesLadders"></div>
+		<h2 id="roomName">Untitled</h2>
+	</header>
+	<section class="main pure-g">
+		<div id="container" class="pure-u-1-3"></div>
+	</section>
+	<script defer="defer">
+	
+	</script>
+
+	<div id="room">
+	<table id="playerList">
+		<thead>
+			<tr id="playerListTop">
+			<td id="playerName">Player</td>
+			<td id="playerColor">Color</td>
+			</tr>
+		</thead>
+	<tbody>
+		<tr class="playerRow host"><td class="playerNameColumn iconUser">Janos</td><td class="playerColorColumn"></td></tr>
+		<tr class="playerRow"><td class="playerNameColumn iconComputer">Computer</td><td class="playerColorColumn"></td></tr>
+		<tr class="playerRow self"><td class="playerNameColumn iconUser">Geza</td><td class="playerColorColumn"></td></tr>
+		<tr class="playerRow empty"><td class="playerNameColumn">Empty</td><td class="playerColorColumn"></td></tr>
+	</tbody>
+	</table>
+	<table id="playerList">
+		
+	</table>
+	
+	<div id="buttonRow">
+	<div class="button" id="leave" onclick="Leave()">LEAVE</div>
+	<div id="spaceDiv1"></div>
+	<div class="button" id="start" onclick="Start()">START</div>
+	</div>
+	</div>
+	
+
+
+</body>
+</html>
