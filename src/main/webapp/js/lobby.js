@@ -1,11 +1,13 @@
 function CreateRoom() {
-	var formDiv = document.getElementById("createRoomDetails");
-	formDiv.style.display= "inline-block";
+	$('#createRoomForm')
+	
+	var formDiv = $("#createRoomDetails");
+	formDiv.css("display", "inline-block");
 }
 
 function CreateRoomSubmit() {
-	var form = document.getElementById("createRoomForm");
-	var roomName = form.children[0].value;
+	var form = $("#createRoomForm");
+	var roomName = form.children(":first").val();
 	alert("Ok clicked, room name is: " + roomName);
 }
 
@@ -23,15 +25,14 @@ function RoomClicked(room) {
 	if(room.id == "") return;
 	
 	if(roomSelected != null) {
-		roomSelected.classList.remove("selectedRoom");
+		$(roomSelected).removeClass("selectedRoom");
 	}
 	if(room == roomSelected) {
 		roomSelected = null;
 		return;
 	}
 	roomSelected = room;
-	roomSelected.classList.add("selectedRoom");
-	//alert(room.id);
+	$(roomSelected).addClass("selectedRoom");
 }
 
 function JoinRoomClicked() {
