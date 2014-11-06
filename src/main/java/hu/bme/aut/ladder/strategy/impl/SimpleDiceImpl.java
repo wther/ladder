@@ -21,6 +21,6 @@ public class SimpleDiceImpl implements Dice {
      */
     @Override
     public int getNext() {
-        return 1 + random.nextInt(6);
+        return 1 + random.nextInt(DICE_LIMIT);
     }
 }
