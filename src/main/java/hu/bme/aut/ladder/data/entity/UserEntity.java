@@ -1,11 +1,13 @@
 package hu.bme.aut.ladder.data.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.servlet.http.HttpServletRequest;
 
@@ -45,6 +47,12 @@ public class UserEntity {
      */
     @ManyToOne
     private GameEntity game;
+    
+    /**
+     * The player this user represents
+     */
+    @OneToOne(optional = true, cascade = CascadeType.ALL)
+    private PlayerEntity player;
 
     public Long getUserId() {
         return userId;
@@ -76,5 +84,18 @@ public class UserEntity {
 
     public void setGame(GameEntity game) {
         this.game = game;
+    }
+
+    public PlayerEntity getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(PlayerEntity player) {
+        this.player = player;
+    }
+
+    @Override
+    public String toString() {
+        return "UserEntity{" + "userId=" + userId + ", sessionId=" + sessionId + ", name=" + name + '}';
     }
 }

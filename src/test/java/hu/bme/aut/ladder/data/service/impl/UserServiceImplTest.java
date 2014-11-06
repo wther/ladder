@@ -23,12 +23,6 @@ public class UserServiceImplTest extends BaseIntegrationTest {
     private UserService target;
     
     /**
-     * User repository
-     */
-    @Autowired
-    private UserRepository repository;
-    
-    /**
      * Test that user is added to the database 
      */
     @Test
@@ -59,20 +53,12 @@ public class UserServiceImplTest extends BaseIntegrationTest {
         entity.setName(userName);
         entity.setSessionId(sessionId);
         
-        repository.save(entity);
+        userRepository.save(entity);
         
         // Act
         UserEntity result = target.findOrCreateUser(sessionId);
         
         // Assert
         assertEquals(userName, result.getName());
-    }
-    
-    /**
-     * Cleans up the <code>users</code> table
-     */
-    @After
-    public void tearDown(){
-        repository.deleteAll();
     }
 }
