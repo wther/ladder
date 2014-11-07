@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.data.repository;
 
 import hu.bme.aut.ladder.data.entity.GameEntity;
+import hu.bme.aut.ladder.data.entity.UserEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

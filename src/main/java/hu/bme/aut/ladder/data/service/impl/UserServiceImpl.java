@@ -1,10 +1,10 @@
 package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.data.entity.UserEntity;
-import hu.bme.aut.ladder.data.repository.BoardRepository;
 import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.UserService;
 import java.util.List;
+import java.util.Random;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,9 @@ public class UserServiceImpl implements UserService {
         if(userInDB == null){
             UserEntity user = new UserEntity();
             user.setSessionId(sessionId);
-            user.setName("Anonymous");
+            
+            Random random = new Random();
+            user.setName("Anonymous" + random.nextInt(100));
             userRepository.save(user);
             return user;
         } else {

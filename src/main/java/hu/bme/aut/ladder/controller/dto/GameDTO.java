@@ -1,11 +1,11 @@
 package hu.bme.aut.ladder.controller.dto;
 
-import hu.bme.aut.ladder.controller.GameController;
+import hu.bme.aut.ladder.controller.LobbyController;
 import java.util.Date;
 import java.util.List;
 
 /**
- * DTO sent from the {@link GameController}
+ * DTO sent from the {@link LobbyController}
  * 
  * @author Barnabas
  */
@@ -35,6 +35,11 @@ public class GameDTO {
      * Value indicating that the current user is in this game
      */
     private boolean userInGame;
+    
+    /**
+     * Name of the user requesting this DTO
+     */
+    private String user;
 
     public Long getGameId() {
         return gameId;
@@ -74,5 +79,13 @@ public class GameDTO {
 
     public void setUserInGame(boolean userInGame) {
         this.userInGame = userInGame;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }

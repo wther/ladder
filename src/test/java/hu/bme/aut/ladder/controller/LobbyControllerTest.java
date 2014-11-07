@@ -3,8 +3,11 @@ package hu.bme.aut.ladder.controller;
 import hu.bme.aut.ladder.BaseControllerTest;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
+import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpSession;
@@ -17,11 +20,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * IT tests for the {@link GameController}
+ * IT tests for the {@link LobbyController}
  * 
  * @author Barnabas
  */
-public class GameControllerTest extends BaseControllerTest {
+public class LobbyControllerTest extends BaseControllerTest {
     
     /**
      * Perform 3 POST requests to <code>games</code> and then
@@ -43,15 +46,17 @@ public class GameControllerTest extends BaseControllerTest {
         
         // List games from the viewpoint of player1
         mockMvc
-            .perform(get(GameController.LIST_GAMES_URI).session(player1))
+            .perform(get(LobbyController.LIST_GAMES_URI).session(player1))
             .andExpect(status().is(HttpStatus.OK.value()))
             .andExpect(jsonPath("$", hasSize(3)))
                 
             // Anonymous is before John in the alphabet, so John is the last
-            .andExpect(jsonPath("$[0].host", is("Anonymous")))
+            .andExpect(jsonPath("$[0].host", startsWith("Anonymous")))
+            .andExpect(jsonPath("$[0].created", notNullValue()))
             .andExpect(jsonPath("$[0].allPlayers", hasSize(1)))
             .andExpect(jsonPath("$[0].userInGame", is(false)))
             .andExpect(jsonPath("$[2].host", is(name)))
+            .andExpect(jsonPath("$[2].created", notNullValue()))
             .andExpect(jsonPath("$[2].allPlayers", hasSize(1)))
             .andExpect(jsonPath("$[2].userInGame", is(true)));
     }
@@ -69,14 +74,14 @@ public class GameControllerTest extends BaseControllerTest {
         
         // Join this game
         mockMvc
-          .perform(put(GameController.JOIN_GAME_URI + "/" + game.getGameId()))
+          .perform(put(LobbyController.JOIN_GAME_URI + "/" + game.getGameId()))
           .andExpect(status().is(HttpStatus.OK.value()))
           .andExpect(jsonPath("$.userInGame", is(true)))
           .andExpect(jsonPath("$.allPlayers", hasSize(2)));
         
         // Join this game by an other user
         MvcResult result = mockMvc
-          .perform(put(GameController.JOIN_GAME_URI + "/" + game.getGameId()))
+          .perform(put(LobbyController.JOIN_GAME_URI + "/" + game.getGameId()))
           .andExpect(status().is(HttpStatus.OK.value()))
           .andExpect(jsonPath("$.userInGame", is(true)))
           .andExpect(jsonPath("$.allPlayers", hasSize(3)))
@@ -85,24 +90,47 @@ public class GameControllerTest extends BaseControllerTest {
         // Leave this game by this user
         MockHttpSession session = (MockHttpSession)result.getRequest().getSession();
         mockMvc
-          .perform(delete(GameController.LEAVE_GAME_URI + "/" + game.getGameId()).session(session))                
-          .andExpect(status().is(HttpStatus.OK.value()))
-          .andExpect(jsonPath("$.userInGame", is(false)))
-          .andExpect(jsonPath("$.allPlayers", hasSize(2)));
+          .perform(delete(RoomController.LEAVE_GAME_URI).session(session))                
+          .andExpect(status().is(HttpStatus.OK.value()));
     }
     
     /**
-     * Perform POST to <code>/game</code> and create new game.
-     * 
-     * @return Session ID of the host
+     * Perform 2 POST requests to <code>games</code>
      */
-    private MockHttpSession createNewGame() throws Exception{
+    @Test
+    public void thatUserCantCreateTwoGames() throws Exception {
+        // Create game once
+        MockHttpSession player = createNewGame();
         
+        // Attempt again
         MvcResult result = mockMvc
-            .perform(post(GameController.CREATE_GAME_URI))
+            .perform(post(LobbyController.CREATE_GAME_URI).session(player))
+            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+            .andReturn();
+    }
+    
+    /**
+     * Create two games and then attempt to join them both from a single session
+     */
+    @Test
+    public void thatUserCantJoinTwoGames() throws Exception {
+        // Create game once
+        createNewGame();
+        createNewGame();
+        
+        List<GameEntity> games = gameRepository.findAll();
+        
+        // Join one game
+        MvcResult result = mockMvc
+            .perform(put(LobbyController.JOIN_GAME_URI + "/" + games.get(0).getGameId()))
             .andExpect(status().is(HttpStatus.OK.value()))
             .andReturn();
-                
-        return (MockHttpSession)result.getRequest().getSession();
-    }    
+        
+        // Join the other one from the same session
+        MockHttpSession session = (MockHttpSession)result.getRequest().getSession();
+        
+        mockMvc
+            .perform(put(LobbyController.JOIN_GAME_URI + "/" + games.get(1).getGameId()).session(session))
+            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+    }   
 }

@@ -4,8 +4,10 @@ import hu.bme.aut.ladder.BaseIntegrationTest;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.GameService;
+import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
      * Test that when creating a new game no board is set yet
      */
     @Test
-    public void thatGameStartedHasNoBoardByDefault(){
+    public void thatGameStartedHasNoBoardByDefault() throws GameActionNotAllowedException{
      
         // Arrange
         UserEntity user = new UserEntity();
@@ -46,7 +48,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
      * Test when creating a game the host becomes a user and host
      */
     @Test
-    public void thatHostIsAddedToTheGame(){
+    public void thatHostIsAddedToTheGame() throws GameActionNotAllowedException{
         // Arrange
         UserEntity user = new UserEntity();
         user.setName("Test");
@@ -57,8 +59,9 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         
         // Assert
         assertEquals(user, game.getHost());
-        assertEquals("Host should be a user", 1, game.getUsers().size());
-        assertEquals("Host should be a user", user, game.getUsers().get(0));
+        assertNotNull("User should have a game", user.getGame());
+        assertEquals(game.getGameId(), user.getGame().getGameId());
+        assertEquals("Host should be a user", 1, userRepository.findByGame(game).size());
     }
     
     /**
@@ -66,7 +69,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
      * returns them in order
      */
     @Test
-    public void thatGamesAreReturnedInOrderByTheHostsName(){
+    public void thatGamesAreReturnedInOrderByTheHostsName() throws GameActionNotAllowedException{
         
         final String[] names = {"BBB", "AAA", "CCC"};
         

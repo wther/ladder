@@ -1,6 +1,8 @@
 package hu.bme.aut.ladder.data.repository;
 
+import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -17,4 +19,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>{
      */
     UserEntity findBySessionId(String sessionId);
     
+    /**
+     * Find all users in a game
+     * @param game
+     * @return 
+     */
+    List<UserEntity> findByGame(GameEntity game);
 }

@@ -3,8 +3,11 @@ package hu.bme.aut.ladder.data.service.impl;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.repository.GameRepository;
+import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.GameService;
-import java.util.Arrays;
+import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,21 +26,38 @@ public class GameServiceImpl implements GameService {
      * Repository of games
      */
     @Autowired 
+    private UserRepository userRepository;
+    
+    /**
+     * Repository of games
+     */
+    @Autowired 
     private GameRepository repository;
 
     /**
      * {@inheritDoc}
      * @param host 
+     * @throws hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException 
      */
     @Override
-    public GameEntity startGame(UserEntity host) {
+    public GameEntity startGame(UserEntity host) throws GameActionNotAllowedException {
+        if(host == null){
+            throw new IllegalArgumentException("host is null");
+        }
+        
+        if(host.getGame() != null){
+            throw new GameActionNotAllowedException(host.getName() + " is already in a game hosted by: " + host.getGame().getHost().getName());
+        }
+        
         GameEntity game = new GameEntity();
         game.setGameState(GameEntity.GameState.STARTED);
-        
-        game.setUsers(Arrays.asList(host));
+        game.setCreated(new Timestamp(new Date().getTime()));
         game.setHost(host);
+        host.setGame(game);
         
         repository.save(game);
+        userRepository.save(host);
+        
         return game;
     }
 
@@ -69,16 +89,22 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public GameEntity join(Long gameId, UserEntity user) {
+    public GameEntity join(Long gameId, UserEntity user) throws GameActionNotAllowedException {
         GameEntity game = repository.findOne(gameId);
         if(game == null){
-            throw new IllegalArgumentException("Game with gameId not found: " + gameId);
+            throw new GameActionNotAllowedException("Game with gameId not found: " + gameId);
         }
         
-        if(!game.getUsers().contains(user)){
-            game.getUsers().add(user);
+        if(user == null){
+            throw new IllegalArgumentException("user is null");
         }
-        repository.save(game);
+        
+        if(user.getGame() != null && !user.getGame().getGameId().equals(gameId)){
+            throw new GameActionNotAllowedException(user.getName() + " is already in a game hosted by: " + user.getGame().getHost().getName());
+        }
+        
+        user.setGame(game);
+        userRepository.save(user);
         return game;
     }
 
@@ -86,16 +112,16 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public GameEntity leave(Long gameId, UserEntity user) {
-        GameEntity game = repository.findOne(gameId);
-        if(game == null){
-            throw new IllegalArgumentException("Game with gameId not found: " + gameId);
-        }
-        
-        if(game.getUsers().contains(user)){
-            game.getUsers().remove(user);
-        }
-        repository.save(game);
-        return game;
+    public void leave(UserEntity user) {
+        user.setGame(null);
+        userRepository.save(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<UserEntity> findUsersInGame(GameEntity game) {
+        return userRepository.findByGame(game);
     }
 }

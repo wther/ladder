@@ -60,15 +60,10 @@ public class GameEntity {
     
     /**
      * This game's host
+     * 
      */
     @OneToOne(cascade = CascadeType.REFRESH, optional = false)
     private UserEntity host;
-    
-    /**
-     * Users playing in this game
-     */
-    @OneToMany(cascade = CascadeType.REFRESH)
-    private List<UserEntity> users;
         
     /**
      * State of the game
@@ -117,14 +112,6 @@ public class GameEntity {
         this.host = host;
     }
 
-    public List<UserEntity> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<UserEntity> users) {
-        this.users = users;
-    }
-
     @Override
     public int hashCode() {
         int hash = 7;
@@ -144,5 +131,10 @@ public class GameEntity {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "GameEntity{" + "gameId=" + gameId + ", created=" + created + ", gameState=" + gameState + ", host=" + host + '}';
     }
 }

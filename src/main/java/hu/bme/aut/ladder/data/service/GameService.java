@@ -3,6 +3,7 @@ package hu.bme.aut.ladder.data.service;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity.GameState;
 import hu.bme.aut.ladder.data.entity.UserEntity;
+import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ public interface GameService {
      * @param host 
      * @return  
      */
-    GameEntity startGame(UserEntity host);
+    GameEntity startGame(UserEntity host) throws GameActionNotAllowedException;
     
     /**
      * Join user to a game
@@ -26,16 +27,14 @@ public interface GameService {
      * @param user
      * @return 
      */
-    GameEntity join(Long gameId, UserEntity user);
+    GameEntity join(Long gameId, UserEntity user) throws GameActionNotAllowedException;
     
     /**
      * Leave from a game 
      * 
-     * @param gameId
      * @param user
-     * @return 
      */
-    GameEntity leave(Long gameId, UserEntity user);
+    void leave(UserEntity user);
     
     /**
      * Find game by its id 
@@ -58,4 +57,11 @@ public interface GameService {
      */
     List<GameEntity> findGamesByState(GameState gameState);
     
+    /**
+     * Returns all the users in a given game
+     * 
+     * @param game
+     * @return 
+     */
+    List<UserEntity> findUsersInGame(GameEntity game);    
 }
