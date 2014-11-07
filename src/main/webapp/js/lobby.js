@@ -1,47 +1,89 @@
+
+
+function HandleError(xhr){
+    console.log(xhr);
+    alert(xhr.responseText);
+}
+
 function CreateRoom() {
-	$('#createRoomForm')
-	
-	var formDiv = $("#createRoomDetails");
-	formDiv.css("display", "inline-block");
+    $.ajax({
+        method: "POST",
+        url: "game/new",
+        success: function (data) {
+            document.location = "room.html";
+        },
+        error: HandleError
+    });
 }
 
-function CreateRoomSubmit() {
-	var form = $("#createRoomForm");
-	var roomName = form.children(":first").val();
-	alert("Ok clicked, room name is: " + roomName);
-}
-
-var clear=true;
+var clear = true;
 function RoomNameFocus(obj) {
-	if(clear) {
-		obj.value = "";
-		clear = false;
-	}
+    if (clear) {
+        obj.value = "";
+        clear = false;
+    }
 }
 
 var roomSelected = null;
 
 function RoomClicked(room) {
-	if(room.id == "") return;
-	
-	if(roomSelected != null) {
-		$(roomSelected).removeClass("selectedRoom");
-	}
-	if(room == roomSelected) {
-		roomSelected = null;
-		return;
-	}
-	roomSelected = room;
-	$(roomSelected).addClass("selectedRoom");
+    if (roomSelected !== null) {
+        $(roomSelected).removeClass("selectedRoom");
+    }
+    if (room === roomSelected) {
+        roomSelected = null;
+        return;
+    }
+    roomSelected = room;
+    $(roomSelected).addClass("selectedRoom");
 }
 
 function JoinRoomClicked() {
-	if(roomSelected != null) {
-		alert("joining room "+roomSelected.id);
-		document.location.href = "/room.html";
-	}
+    if (roomSelected != null) {
+        var roomId = $(roomSelected).attr('roomId');
+        $.ajax({
+            method: 'PUT',
+            url: 'game/join/' + roomId,
+            success: function(){
+                document.location = "room.html";
+            },
+            error: HandleError
+        });
+    }
 }
 
 function RefreshRooms() {
-	location.reload();
+    $.ajax({
+        url: "games",
+        success: function (data) {
+            var table = $('table#gameList');
+            // Remove all rows
+            $('table#gameList tbody').empty();
+
+            // Add rooms
+            for (var i in data) {
+                var tr = $('<tr>')
+                        .addClass('roomRow')
+                        .attr('roomId', data[i].gameId)
+                        .click(function () {
+                            RoomClicked(this);
+                        });
+
+                tr.append($('<td>')
+                        .text(data[i].host)
+                        .addClass('roomNameColumn'));
+
+                tr.append($('<td>')
+                        .text(data[i].allPlayers.length + '/4')
+                        .addClass('playersColumn'));
+
+                table.append(tr);
+            }
+        },
+        error: HandleError
+    });
 }
+
+$(function () {
+    RefreshRooms();
+})
