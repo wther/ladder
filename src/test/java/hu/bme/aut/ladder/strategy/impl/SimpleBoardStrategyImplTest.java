@@ -6,7 +6,7 @@ import hu.bme.aut.ladder.data.entity.StateChangeEntity;
 import hu.bme.aut.ladder.data.entity.TunnelEntity;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.LADDER;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.SNAKE;
-import hu.bme.aut.ladder.strategy.BoardActionNotPermitted;
+import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import hu.bme.aut.ladder.strategy.Dice;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +29,11 @@ public class SimpleBoardStrategyImplTest {
     /**
      * Target being tested
      */
-    private SimpleBoardStrategyImpl target = new SimpleBoardStrategyImpl();
+    private final SimpleBoardStrategyImpl target = new SimpleBoardStrategyImpl();
     
     /**
      * Test that rolling the dice moves the player
-     * @throws hu.bme.aut.ladder.strategy.BoardActionNotPermitted
+     * @throws hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted
      */
     @Test
     public void thatRollingTheDiceMovesThePlayer() throws BoardActionNotPermitted {
@@ -54,7 +54,7 @@ public class SimpleBoardStrategyImplTest {
     
     /**
      * Test that a player can climb up on a ladder
-     * @throws hu.bme.aut.ladder.strategy.BoardActionNotPermitted
+     * @throws hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted
      */
     @Test
     public void thatPlayerClimbsUpOnLadder() throws BoardActionNotPermitted {

@@ -8,7 +8,6 @@ import hu.bme.aut.ladder.data.entity.StateChangeEntity;
 import hu.bme.aut.ladder.data.entity.TunnelEntity;
 import java.util.Arrays;
 
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,12 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Barnabas
  */
 public class BoardRepositoryTest extends BaseIntegrationTest {
-
-    /**
-     * Target
-     */
-    @Autowired
-    private BoardRepository boardRepository;
 
     /**
      * Test that repository is empty by default
@@ -129,14 +122,6 @@ public class BoardRepositoryTest extends BaseIntegrationTest {
         assertEquals(first.getSequenceNumber(), retVal.getStateChanges().get(0).getSequenceNumber());
         assertEquals(second.getSequenceNumber(), retVal.getStateChanges().get(1).getSequenceNumber());
         
-    }
-
-    /**
-     * Tear down test context
-     */
-    @After
-    public void tearDown() {
-        boardRepository.deleteAll();
     }
     
     /**
