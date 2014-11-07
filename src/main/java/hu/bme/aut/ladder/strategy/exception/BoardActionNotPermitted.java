@@ -1,4 +1,4 @@
-package hu.bme.aut.ladder.strategy;
+package hu.bme.aut.ladder.strategy.exception;
 
 /**
  * Exception thrown from {@link BoardStrategy} implementations

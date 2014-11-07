@@ -17,7 +17,7 @@ public interface UserService {
      * @return 
      */
     UserEntity findOrCreateUser(String sessionId);
-    
+        
     
     /**
      * Returns all users
