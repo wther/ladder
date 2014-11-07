@@ -4,8 +4,9 @@ import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.entity.StateChangeEntity;
 import hu.bme.aut.ladder.data.entity.TunnelEntity;
+import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.LADDER;
+import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.SNAKE;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
-import static java.lang.Math.random;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -48,8 +49,8 @@ public final class BoardBuilder {
         // Prepare snakes and ladders
         for(int i = 0; i < 200; i++){
         
-            List<TunnelEntity> tunnels = getTunnels(snakeCount, true);
-            tunnels.addAll(getTunnels(ladderCount, false));
+            List<TunnelEntity> tunnels = generateTunnels(snakeCount, SNAKE);
+            tunnels.addAll(generateTunnels(ladderCount, LADDER));
 
             board.setTunnels(tunnels);
             
@@ -63,8 +64,11 @@ public final class BoardBuilder {
         return board;
     }
     
-    private List<TunnelEntity> getTunnels(int count ,boolean descending){
+    private List<TunnelEntity> generateTunnels(int count , TunnelEntity.Type type){
         Random random = new Random();
+        
+        // Snakes go down, ladders go up
+        final boolean descending = type == SNAKE ? true : false;
         
         // For each snake
         List<TunnelEntity> retVal = new ArrayList<TunnelEntity>();
@@ -85,7 +89,7 @@ public final class BoardBuilder {
             }
             
             TunnelEntity tunnel = new TunnelEntity();
-            tunnel.setType(TunnelEntity.Type.SNAKE);
+            tunnel.setType(type);
             tunnel.setFromField(from);
             tunnel.setToField(to);
             retVal.add(tunnel);
