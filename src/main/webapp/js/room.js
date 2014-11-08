@@ -1,6 +1,12 @@
 
 function Start() {
-	document.location.href = "/..";
+    $.ajax({
+        method: 'POST',
+        url: "game/start",
+        success: function(){
+            document.location = 'game.html';
+        }
+    });
 }
 
 function Leave() {

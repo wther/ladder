@@ -1,11 +1,15 @@
 package hu.bme.aut.ladder.data.service.impl;
 
+import hu.bme.aut.ladder.data.builder.BoardBuilder;
+import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
+import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.repository.GameRepository;
 import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
+import hu.bme.aut.ladder.strategy.BoardStrategy;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +37,12 @@ public class GameServiceImpl implements GameService {
      */
     @Autowired 
     private GameRepository repository;
+    
+    /**
+     * Board strategy used
+     */
+    @Autowired
+    private BoardStrategy boardStrategy;
 
     /**
      * {@inheritDoc}
@@ -40,7 +50,7 @@ public class GameServiceImpl implements GameService {
      * @throws hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException 
      */
     @Override
-    public GameEntity startGame(UserEntity host) throws GameActionNotAllowedException {
+    public GameEntity intializeGame(UserEntity host) throws GameActionNotAllowedException {
         if(host == null){
             throw new IllegalArgumentException("host is null");
         }
@@ -50,15 +60,82 @@ public class GameServiceImpl implements GameService {
         }
         
         GameEntity game = new GameEntity();
-        game.setGameState(GameEntity.GameState.STARTED);
+        game.setGameState(GameEntity.GameState.INITIALIZED);
         game.setCreated(new Timestamp(new Date().getTime()));
         game.setHost(host);
+        game.setNumberOfRobots(0);
         host.setGame(game);
         
         repository.save(game);
         userRepository.save(host);
         
         return game;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void startGame(GameEntity game) throws GameActionNotAllowedException{
+        if(game == null){
+            throw new IllegalArgumentException("game is null");
+        }
+        
+        if(game.getGameState() != GameEntity.GameState.INITIALIZED){
+            throw new GameActionNotAllowedException("Expected game to have INITIALIZED state but was " + game.getGameState() + " for " + game.getGameId());
+        }
+        
+        List<UserEntity> users = userRepository.findByGame(game);
+        
+        // Make sure that there are at least 2 players
+        if(users.size() + game.getNumberOfRobots() < 2){
+            throw new GameActionNotAllowedException("Unable to start game with only " + users.size() + " players and " + game.getNumberOfRobots() + " robots");
+        }
+        
+        // Can't play with more than the number of colors available
+        if(users.size() + game.getNumberOfRobots() > PlayerEntity.Color.values().length){
+            throw new GameActionNotAllowedException("Unable to start game, the maximum number of players allowed is: " + PlayerEntity.Color.values().length);
+        }
+        
+        // We're OK to take off
+        BoardEntity board = new BoardBuilder().build(boardStrategy);
+        
+        // @TODO
+        // Randomize the order of the players
+        
+        // Add players
+        int colorIndex = 0;
+        for(UserEntity user : users){
+            PlayerEntity player = new PlayerEntity();
+            player.setPosition(0);
+            player.setColor(PlayerEntity.Color.values()[colorIndex++]);
+            player.setType(PlayerEntity.Type.HUMAN);
+            player.setName(user.getName());
+            
+            user.setPlayer(player);
+            
+            // We need to save the user (and the player) here
+            // so it becomes a part of the persistence context
+            // and doesn't get saved again when the board is saved
+            userRepository.save(user);            
+            board.getPlayers().add(user.getPlayer());
+        }
+        
+        // Add robots
+        for(int i = 0; i < game.getNumberOfRobots(); i++){
+            PlayerEntity player = new PlayerEntity();
+            player.setPosition(0);
+            player.setColor(PlayerEntity.Color.values()[colorIndex++]);
+            player.setType(PlayerEntity.Type.ROBOT);
+            player.setName("Robot");
+            board.getPlayers().add(player);
+        }
+        
+        game.setBoard(board);
+        game.setGameState(GameEntity.GameState.BOARD_STARTED);
+        
+        // Persist in the DB
+        repository.save(game);
     }
 
     /**

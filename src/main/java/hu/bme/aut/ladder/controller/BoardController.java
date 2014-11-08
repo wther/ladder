@@ -1,55 +1,111 @@
 package hu.bme.aut.ladder.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.bme.aut.ladder.controller.dto.BoardDTO;
-import hu.bme.aut.ladder.controller.dto.FieldDTO;
-import hu.bme.aut.ladder.controller.dto.PlayerDTO;
-import hu.bme.aut.ladder.controller.dto.TunnelDTO;
+import static hu.bme.aut.ladder.data.entity.GameEntity.GameState.BOARD_STARTED;
+import hu.bme.aut.ladder.data.entity.UserEntity;
+import hu.bme.aut.ladder.data.service.BoardService;
+import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 
-import java.util.Arrays;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Controller for accessing the board.
- * 
+ *
  * @author Barnabas
  */
 @Controller
-public class BoardController {
+public class BoardController extends BaseGameController {
 
     /**
-     * Dummy implementation for the Snakes & Ladders game with returning the
-     * same board all the time
+     * Class logger
      */
-    @RequestMapping("/board")
-    public @ResponseBody ResponseEntity<BoardDTO> board() {
-        BoardDTO board = new BoardDTO();
-        board.setWidth(10);
-        board.setHeight(10);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LobbyController.class);
 
-        // Set ladders
-        board.setLadders(Arrays.asList(new TunnelDTO[] { TunnelDTO.forCoordinates(3, 2, 7, 6), TunnelDTO.forCoordinates(8, 8, 4, 9) }));
+    /**
+     * URI for accessing details on the board
+     */
+    public static final String BOARD_DETAILS_URI = "/board";
 
-        // Set snakes
-        board.setSnakes(Arrays.asList(new TunnelDTO[] { TunnelDTO.forCoordinates(3, 9, 7, 6) }));
+    /**
+     * URI for making a move
+     */
+    public static final String BOARD_ACTION_URI = "/board/action";
 
-        FieldDTO playerPosition = new FieldDTO();
-        playerPosition.setX(0);
-        playerPosition.setY(0);
+    /**
+     * Board strategy for manipulation of boards
+     */
+    @Autowired
+    private BoardService boardService;
 
-        PlayerDTO player = new PlayerDTO();
-        player.setName("John");
-        player.setPosition(playerPosition);
+    /**
+     * Controller to request the current state of the board
+     */
+    @RequestMapping(value = BOARD_DETAILS_URI, method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<BoardDTO> board(HttpServletRequest request) {
+        final UserEntity user = findAndVerifyUserEntity(request);
+        if (user == null) {
+            return new ResponseEntity<BoardDTO>(HttpStatus.BAD_REQUEST);
+        }
 
-        // Set players
-        board.setPlayers(Arrays.asList(new PlayerDTO[] { player }));
-
-        // Return with HTTP 200 OK
-        return new ResponseEntity<BoardDTO>(board, HttpStatus.OK);
+        LOGGER.info("Sending DTO for board: {}", user.getGame().getBoard());
+        
+        return new ResponseEntity<BoardDTO>(dtoFromBoard(user.getGame().getBoard(), user), HttpStatus.OK);
     }
 
+    /**
+     * Controller for rolling the dice etc.
+     *
+     * @return
+     */
+    @RequestMapping(value = BOARD_ACTION_URI, method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<BoardDTO> takeAction(HttpServletRequest request, @RequestParam String action) throws BoardActionNotPermitted {
+        final UserEntity user = findAndVerifyUserEntity(request);
+        if (user == null) {
+            return new ResponseEntity<BoardDTO>(HttpStatus.BAD_REQUEST);
+        }
+        
+        
+        LOGGER.info("{} is attempting to make a move: {}", user, action);
+        boardService.executeAction(user.getGame().getBoard(), user.getPlayer(), action);
+        
+        final BoardDTO retVal = dtoFromBoard(user.getGame().getBoard(), user);
+        
+        return new ResponseEntity<BoardDTO>(retVal, HttpStatus.OK);
+        
+    }
+
+    private UserEntity findAndVerifyUserEntity(HttpServletRequest request) {
+        final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
+        LOGGER.info("Board details requested by: {}", user);
+
+        // Make sure user is in a game
+        if (user.getGame() == null) {
+            LOGGER.warn("User has no game: {}", user);
+            return null;
+        }
+
+        if (user.getGame().getGameState() != BOARD_STARTED) {
+            LOGGER.warn("Game is not running for: {}, game: {}", user, user.getGame());
+            return null;
+        }
+        return user;
+    }
+
+    @Override
+    protected Logger logger() {
+        return LOGGER;
+    }
 }

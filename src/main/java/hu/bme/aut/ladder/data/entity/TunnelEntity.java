@@ -93,4 +93,9 @@ public class TunnelEntity {
     public void setType(Type type) {
         this.type = type;
     }
+
+    @Override
+    public String toString() {
+        return "TunnelEntity{" + "tunnelId=" + tunnelId + ", fromField=" + fromField + ", toField=" + toField + ", type=" + type + '}';
+    }
 }
