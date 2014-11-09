@@ -12,10 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -50,18 +47,6 @@ public class LobbyController extends BaseGameController {
     public static final String JOIN_GAME_URI = "/game/join";
     
     /**
-     * Service used
-     */
-    @Autowired
-    private GameService service;
-    
-    /**
-     * User service managing the session
-     */
-    @Autowired
-    private UserService userService;
-        
-    /**
      * Starts a new game with user as host
      * @param request
      */
@@ -72,7 +57,7 @@ public class LobbyController extends BaseGameController {
         LOGGER.info("Starting game with host: {}", user);
         
         // Start new game
-        GameEntity game = service.startGame(user);
+        GameEntity game = service.intializeGame(user);
         return dtoFromGame(game, user);
     }
     
@@ -87,14 +72,14 @@ public class LobbyController extends BaseGameController {
         LOGGER.info("List of games for the lobby requested by {}", user);
         
         // Started means no board yet
-        List<GameEntity> games = service.findGamesByState(GameEntity.GameState.STARTED);
+        List<GameEntity> games = service.findGamesByState(GameEntity.GameState.INITIALIZED);
                 
         List<GameDTO> retVal = new ArrayList<GameDTO>();
         for(GameEntity game : games){
             retVal.add(dtoFromGame(game, user));
         }
         return retVal;        
-    }    
+    }
     
     /**
      * Returns a list of all the started games
@@ -108,14 +93,9 @@ public class LobbyController extends BaseGameController {
         LOGGER.info("{} is joining {}", user, gameId);
         return dtoFromGame(service.join(gameId, user), user);
     }  
-    
-    /**
-     * Error handler which reports the problem to the client
-     * @param exception 
-     */
-    @ExceptionHandler(GameActionNotAllowedException.class)
-    public ResponseEntity<String> handleException(GameActionNotAllowedException exception){
-        LOGGER.warn("Request failed", exception);
-        return new ResponseEntity<String>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+
+    @Override
+    protected Logger logger() {
+        return LOGGER;
     }
 }

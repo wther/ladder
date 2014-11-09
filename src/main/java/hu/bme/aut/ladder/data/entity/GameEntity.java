@@ -1,7 +1,6 @@
 package hu.bme.aut.ladder.data.entity;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,7 +10,6 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -64,12 +62,18 @@ public class GameEntity {
      */
     @OneToOne(cascade = CascadeType.REFRESH, optional = false)
     private UserEntity host;
-        
+    
+    /**
+     * Number of robots in this game, fixed after board is initialized
+     */
+    @Column
+    private int numberOfRobots;
+            
     /**
      * State of the game
      */
     public static enum GameState {
-        INITIALIZED, STARTED, FINISHED
+        INITIALIZED, BOARD_STARTED, FINISHED
     }
 
     public Long getGameId() {
@@ -116,6 +120,14 @@ public class GameEntity {
     public int hashCode() {
         int hash = 7;
         return hash;
+    }
+
+    public int getNumberOfRobots() {
+        return numberOfRobots;
+    }
+
+    public void setNumberOfRobots(int numberOfRobots) {
+        this.numberOfRobots = numberOfRobots;
     }
 
     @Override

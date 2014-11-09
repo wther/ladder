@@ -46,19 +46,19 @@ public class BoardEntity {
     /**
      * Snakes &amp; Ladders on the board
      */
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<TunnelEntity> tunnels;
     
     /**
      * Players on the board
      */
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<PlayerEntity> players;
     
     /**
      * Player state changes on board, e.g. moves
      */
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @OrderBy(value = "sequenceNumber ASC")
     private List<StateChangeEntity> stateChanges;
 
@@ -100,5 +100,10 @@ public class BoardEntity {
 
     public void setStateChanges(List<StateChangeEntity> stateChanges) {
         this.stateChanges = stateChanges;
+    }
+
+    @Override
+    public String toString() {
+        return "BoardEntity{" + "boardId=" + boardId + ", boardSize=" + boardSize + ", tunnels=" + tunnels + ", players=" + players + ", stateChanges=" + stateChanges + '}';
     }
 }

@@ -3,6 +3,7 @@ package hu.bme.aut.ladder.controller;
 import hu.bme.aut.ladder.controller.dto.GameDTO;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
+import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,11 @@ public class RoomController extends BaseGameController {
      * URI to create leave a game
      */
     public static final String LEAVE_GAME_URI = "/game/leave";
+        
+    /**
+     * URI to create leave a game
+     */
+    public static final String GAME_START_URI = "/game/start";
     
     /**
      * Returns a list of all the started games
@@ -57,13 +63,44 @@ public class RoomController extends BaseGameController {
     /**
      * Returns a list of all the started games
      * @param request
-     * @param gameId
      */
     @RequestMapping(value = LEAVE_GAME_URI, method = RequestMethod.DELETE)
-    public @ResponseBody void leave(HttpServletRequest request) {
+    public void leave(HttpServletRequest request) {
         
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         LOGGER.info("{} is leaving {}", user, user.getGame());
         service.leave(user);
     } 
+    
+    
+    /**
+     * Returns a list of all the started games
+     * @param request
+     */
+    @RequestMapping(value = GAME_START_URI, method = RequestMethod.POST)
+    public ResponseEntity<String> start(HttpServletRequest request) throws GameActionNotAllowedException {
+        final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
+        LOGGER.info("{} is starting the game {}", user, user.getGame());
+        
+        if(user.getGame() == null){
+            LOGGER.warn("No game associated with {}", user.getName());
+            return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+        }
+        
+        // If user is not host
+        if(!user.getGame().getHost().equals(user)){
+            LOGGER.warn("{} is not the host of the game, {} is ", user.getName(), user.getGame().getHost().getName());
+            return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+        }
+        
+        // Do start the game
+        service.startGame(user.getGame());
+        return new ResponseEntity<String>(HttpStatus.OK);
+    }
+
+    
+    @Override
+    protected Logger logger() {
+        return LOGGER;
+    }
 }

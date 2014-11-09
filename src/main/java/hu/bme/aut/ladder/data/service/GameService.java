@@ -18,7 +18,7 @@ public interface GameService {
      * @param host 
      * @return  
      */
-    GameEntity startGame(UserEntity host) throws GameActionNotAllowedException;
+    GameEntity intializeGame(UserEntity host) throws GameActionNotAllowedException;
     
     /**
      * Join user to a game
@@ -35,6 +35,12 @@ public interface GameService {
      * @param user
      */
     void leave(UserEntity user);
+    
+    /**
+     * Actually start the game, setup board and let the fun begin
+     * @param game 
+     */
+    void startGame(GameEntity game) throws GameActionNotAllowedException;
     
     /**
      * Find game by its id 

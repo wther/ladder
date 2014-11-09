@@ -8,14 +8,9 @@ import java.util.List;
 public class BoardDTO {
 
     /**
-     * Width of the board
+     * Size of the board
      */
-    private int width;
-    
-    /**
-     * Height of the board
-     */
-    private int height;
+    private int size;
     
     /**
      * Snakes on the board
@@ -31,21 +26,18 @@ public class BoardDTO {
      * Players on the board
      */
     private List<PlayerDTO> players;
+    
+    /**
+     * State changes
+     */
+    private List<StateChangeDTO> stateChanges;
 
-    public int getWidth() {
-        return width;
+    public int getSize() {
+        return size;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
+    public void setSize(int size) {
+        this.size = size;
     }
 
     public List<TunnelDTO> getSnakes() {
@@ -70,5 +62,13 @@ public class BoardDTO {
 
     public void setPlayers(List<PlayerDTO> players) {
         this.players = players;
+    }
+
+    public List<StateChangeDTO> getStateChanges() {
+        return stateChanges;
+    }
+
+    public void setStateChanges(List<StateChangeDTO> stateChanges) {
+        this.stateChanges = stateChanges;
     }
 }

@@ -10,44 +10,28 @@ public class TunnelDTO {
     /**
      * Field where the tunnel starts
      */
-    private FieldDTO from;
+    private int from;
     
     /**
      * Field where the tunnel ends
      */
-    private FieldDTO to;
-    
-    public FieldDTO getFrom() {
+    private int to;
+
+    public int getFrom() {
         return from;
     }
 
-    public void setFrom(FieldDTO from) {
+    public void setFrom(int from) {
         this.from = from;
     }
 
-    public FieldDTO getTo() {
+    public int getTo() {
         return to;
     }
 
-    public void setTo(FieldDTO to) {
+    public void setTo(int to) {
         this.to = to;
     }
     
-    /**
-     * Factory like method to create a tunnel
-     */
-    public static TunnelDTO forCoordinates(int x0, int y0, int x1, int y1){
-        FieldDTO from = new FieldDTO();
-        from.setX(x0);
-        from.setY(y0);
-        
-        FieldDTO to = new FieldDTO();
-        to.setX(x1);
-        to.setY(y1);
-        
-        TunnelDTO tunnel = new TunnelDTO();
-        tunnel.setFrom(from);
-        tunnel.setTo(to);
-        return tunnel;
-    }
+    
 }
