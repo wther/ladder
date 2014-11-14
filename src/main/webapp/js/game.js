@@ -3,6 +3,48 @@
  */
 var SIZE = 600;
 
+MAX_PLAYERS = 4;
+
+var IMGSRC_RED = '../images/token_red.png';
+var IMGSRC_GREEN = '../images/token_green.png';
+var IMGSRC_BLUE = '../images/token_blue.png';
+var IMGSRC_YELLOW = '../images/token_yellow.png';
+
+/**
+ * returns the path of the image corresponding to the colors
+ */
+function imageForColor(colorString) {
+	switch(colorString) {
+	case "RED":
+		return IMGSRC_RED;
+	case "GREEN":
+		return IMGSRC_GREEN;
+	case "BLUE":
+		return IMGSRC_BLUE;
+	case "YELLOW":
+		return IMGSRC_YELLOW;
+	default:
+		throw "imageForColor bad argument: " + colorString;
+	}
+}
+
+
+/**
+ * returns the pixel dimensions for a player token that has i index
+ * (the tokens are rotated around the center of the field)
+ */ 
+function getTokenDim(position, i, boardSize) {
+	var radius = 0.2;
+	var rotMax = MAX_PLAYERS;
+	var scale = 0.7;
+	var pixels = fieldToPixels(position, boardSize, SIZE);
+	return {
+		X: pixels.centerX + pixels.width * radius * Math.cos(Math.PI * (1/rotMax + 2/rotMax * i)) - pixels.width * scale/2,
+		Y: pixels.centerY + pixels.width * radius * Math.sin(Math.PI * (1/rotMax + 2/rotMax * i)) - pixels.width * 0.35,
+		W: pixels.width * scale,
+		H: pixels.height * scale
+	};
+}
 
 /**
  * Returns to pixel coordinates for field x;y given the size and ratio of the
@@ -48,6 +90,8 @@ function fieldToPixels(field, boardSize, pixelSize, padding) {
  */
 function drawBoard(board) {
 
+	boardData = board;
+	
 	var stage = new Kinetic.Stage({
 		container : 'container',
 		width : 600,
@@ -84,165 +128,233 @@ function drawBoard(board) {
 	stage.add(boardLayer);
 	
 	// Draw players
-	var playerLayer = new Kinetic.Layer();
 	
-	for(var i in board.players){
-		var pixels = fieldToPixels(board.players[i].position, board.size, SIZE);
-		playerLayer.add(new Kinetic.Star({
-			innerRadius: 25,
-			outerRadius: 15,
-			numPoints: 5,
-			x: pixels.centerX,
-			y: pixels.centerY,
-			fill: board.players[i].color.toLowerCase()
-		}));
+	playerTokens = {};
+	playerLayer = new Kinetic.Layer();
+	
+	var loadCount = 0;
+	for(var i = 0; i < board.players.length; i++){
+		var player = board.players[i];
+		
+		var imageObj = new Image();
+		imageObj.playerColor = player.color;
+		imageObj.Dim = getTokenDim(player.position, i, board.size);
+		imageObj.i = i;
+		imageObj.onload = function(ev) {
+			loadCount++;
+			var Dim = ev.target.Dim;
+			var playerImage = new Kinetic.Image({
+				x: Dim.X,
+				y: Dim.Y,
+				image: ev.target,
+				width: Dim.W,
+				height: Dim.H
+			});
+			
+			playerImage.i = ev.target.i;
+			
+			playerTokens[ev.target.playerColor] = playerImage;
+			
+			playerLayer.add(playerImage);
+			if(loadCount == board.players.length) {
+				addToStage(stage, board);
+			}
+		};
+		imageObj.src = imageForColor(player.color);
+		
+		
+	  }
+	
+
+        
+    // Draw snakes and ladders
+    var snakeLayer = new Kinetic.Layer();
+    for(var i in board.snakes){
+        var snake = board.snakes[i];
+        
+        var from = fieldToPixels(snake.from, board.size, SIZE);
+        var to = fieldToPixels(snake.to, board.size, SIZE);
+        
+        snakeLayer.add(new Kinetic.Line({
+            points: [from.centerX, from.centerY, to.centerX, to.centerY],
+            stroke: "green",
+            tension: 1,
+            opacity: 0.5
+        }));
+    }
+    stage.add(snakeLayer);
+    
+    var ladderLayer = new Kinetic.Layer();
+    for(var i in board.ladders){
+        var ladder = board.ladders[i];
+        
+        var from = fieldToPixels(ladder.from, board.size, SIZE);
+        var to = fieldToPixels(ladder.to, board.size, SIZE);
+        
+        ladderLayer.add(new Kinetic.Line({
+            points: [from.centerX, from.centerY, to.centerX, to.centerY],
+            stroke: "brown",
+            tension: 1,
+            opacity: 0.5
+        }));
+    }
+    stage.add(ladderLayer);
+    
+    
+    if(loaded1) {
+		processAnimations();
+	}else {
+		loaded2 = true;
+	}
+    processAnimations();
+    
+    loaded2 = true;
+}
+
+var loaded1 = false;
+var loaded2 = false;
+function addToStage(stage) {
+	stage.add(playerLayer);
+	
+	
+	if(loaded2) {
+		processAnimations();
+	}else {
+		loaded1 = true;
+	}
+}
+
+	  
+var Storage = {
+	    set: function(key, value) {
+	        localStorage[key] = JSON.stringify(value);
+	    },
+	    get: function(key) {
+	        return localStorage[key] ? JSON.parse(localStorage[key]) : null;
+	    }
+	};
+
+var processedUntilSequenceNumber = 0;
+var currentArrayIndex = 0;
+
+var boardData;
+
+function processAnimations() {
+	//storage is used so refreshing does not make the game animate it from the beginning
+	//processedUntilSequenceNumber = Storage.get("processedUntilSequenceNumber") || 0;
+	
+	//we animate one animation, and it's onfinish will call this function back
+	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
+		var stateChange = boardData.stateChanges[j];
+		if(stateChange.sequenceNumber > processedUntilSequenceNumber) {
+			console.log(stateChange.sequenceNumber);
+			processedUntilSequenceNumber = stateChange.sequenceNumber;
+			currentArrayIndex = j+1;
+			animateStateChange(stateChange, boardData);
+			break;
+		}
+	}
+	//Storage.set("processedUntilSequenceNumber", processedUntilSequenceNumber);
+}
+
+var playerLayer;
+
+var playerTokens;
+
+function testFunc() {
+	debugger;
+}
+
+function animateStateChange(stateChange, board) {
+	var playerToAnimate;
+	
+	playerToAnimate = playerTokens[stateChange.playerColor];
+	if( playerToAnimate === undefined) {
+		setTimeout(function() {
+			animateStateChange(stateChange, board);
+		}, 200);
+		return;
 	}
 	
-	stage.add(playerLayer);
-        
-        // Draw snakes and ladders
-        var snakeLayer = new Kinetic.Layer();
-        for(var i in board.snakes){
-            var snake = board.snakes[i];
-            
-            var from = fieldToPixels(snake.from, board.size, SIZE);
-            var to = fieldToPixels(snake.to, board.size, SIZE);
-            
-            snakeLayer.add(new Kinetic.Line({
-                points: [from.centerX, from.centerY, to.centerX, to.centerY],
-                stroke: "green",
-                tension: 1,
-                opacity: 0.5
-            }));
-        }
-        stage.add(snakeLayer);
-        
-        var ladderLayer = new Kinetic.Layer();
-        for(var i in board.ladders){
-            var ladder = board.ladders[i];
-            
-            var from = fieldToPixels(ladder.from, board.size, SIZE);
-            var to = fieldToPixels(ladder.to, board.size, SIZE);
-            
-            ladderLayer.add(new Kinetic.Line({
-                points: [from.centerX, from.centerY, to.centerX, to.centerY],
-                stroke: "brown",
-                tension: 1,
-                opacity: 0.5
-            }));
-        }
-        stage.add(ladderLayer);
-        
-        
-        var testLayer = new Kinetic.Layer();
-        
-        var spriteImage = new Image();
-        
-        var spriteLayer = new Kinetic.Layer();
-        spriteImage.onload = function() {
-    	  var sprite = new Kinetic.Sprite({
-    	    x: 10,
-    	    y: 550,
-    	    width: 50,
-    	    width: 50,
-    	    image: spriteImage,
-    	    animation: 'standing',
-    	    animations: {
-    	      standing: [
-    	        0, 0, 50, 50  	     
-    	      ],
-    	      kicking: [
-    	        // x, y, width, height (6 frames)
-    	        0, 109, 45, 98,
-    	        45, 109, 45, 98,
-    	        95, 109, 63, 98,
-    	        156, 109, 70, 98,
-    	        229, 109, 60, 98,
-    	        287, 109, 41, 98
-    	      ],
-    	      jumping: [
-            	0, 5, 50, 50,
-            	0, 10, 50, 50,
-            	0, 15, 50, 50
-    	      ]
-    	    },
-    	    frameRate: 7,
-    	    frameIndex: 0
-    	  });
-    	  spriteLayer.add(sprite);
-    	  stage.add(spriteLayer);
-    	  sprite.start();
-    	  
-    	  var currentX = 10;
-    	  var count = 9;
-    	  var myfunc = function () {
-    		  	if(count == 0) return;
-    		  	count--;
-			    currentX += 60;
-			    var tween = new Kinetic.Tween({
-		    		  node: sprite,
-		    		  x: currentX,
-		    		  y: 550,
-		    		  duration: 0.5,
-		    		  easing: Kinetic.Easings.BounceEaseOut
-			    });
-			    tween.onFinish =  myfunc;
-			    tween.play();
-    	  }
-    	  
-    	  myfunc();
-    	};
-    	spriteImage.src = '../images/token_blue.png';
-    	
-    	
-    	
-    	var imageObj2 = new Image();
-    	
-    	imageObj2.onload = function() {
-    	  var tokenImg = new Kinetic.Image({
-    	    x: 100,
-    	    y: 100,
-    	    image: imageObj2,
-    	    width: 100,
-    	    height: 100
-    	  });
-    	  testLayer.add(tokenImg);
-    	  stage.add(testLayer);
-    	};
-    	imageObj2.src = '../images/token_red.png';
-    	
-
-        var imageObj = new Image();
-        imageObj.onload = function() {
-          var yoda = new Kinetic.Image({
-            x: 200,
-            y: 50,
-            image: imageObj,
-            width: 106,
-            height: 118
-          });
-
-          // add the shape to the layer
-          testLayer.add(yoda);
-
-          // add the layer to the stage
-          stage.add(testLayer);
-        };
-        imageObj.src = 'http://www.html5canvastutorials.com/demos/assets/yoda.jpg';
-    	
-//    	var mySprite = new Kinetic.Sprite({
-//    		x: 100,
-//     	    y: 100,
-//     	    width: 500,
-//     	    height: 500,
-//     	    image: spriteImage,
-//        });
-//    	mySprite.fill("red");
-//    	testLayer.add(mySprite);
-    	
-    	
-        
+	if( playerToAnimate === undefined) {
+		throw "bad argument in animateStateChange";
+	}
+	
+	var fromDim = getTokenDim(stateChange.from, playerToAnimate.i, board.size);
+	var toDim = getTokenDim(stateChange.to, playerToAnimate.i, board.size);
+	
+	var tween2 = new Kinetic.Tween({
+		  node: playerToAnimate,
+		  x: fromDim.X,
+		  y: fromDim.Y,
+		  duration: 0.5,
+		  easing: Kinetic.Easings.BounceEaseOut,
+		  onFinish: function() {
+			  playerToAnimate.setPosition(fromDim.X, fromDim.Y);
+				playerToAnimate.show();
+				playerLayer.draw();
+				var tween = new Kinetic.Tween({
+					  node: playerToAnimate,
+					  x: toDim.X,
+					  y: toDim.Y,
+					  duration: 2,
+					  easing: Kinetic.Easings.BounceEaseOut
+					  //onFinish: processAnimations(board)
+				});
+				tween.onFinish = processAnimations;
+				tween.play();
+		  }
+	});
+	tween2.play();
+//	playerToAnimate.setPosition(fromDim.X, fromDim.Y);
+//	playerToAnimate.show();
+//	playerLayer.draw();
+//	var tween = new Kinetic.Tween({
+//		  node: playerToAnimate,
+//		  x: toDim.X,
+//		  y: toDim.Y,
+//		  duration: 2,
+//		  easing: Kinetic.Easings.BounceEaseOut
+//		  //onFinish: processAnimations(board)
+//	});
+//	tween.onFinish = processAnimations;
+//	tween.play();
+	
+	//
+//	var myfunc = function () {
+//	  	if(count == 0) return;
+//	  	count--;
+//	    currentX += 60;
+//	    var tween = new Kinetic.Tween({
+//    		  node: sprite,
+//    		  x: currentX,
+//    		  y: 550,
+//    		  duration: 0.5,
+//    		  easing: Kinetic.Easings.BounceEaseOut
+//	    });
+//	    tween.onFinish =  myfunc;
+//	    tween.play();
+//  }
+//  
+//  myfunc();
+	
+//	playerToAnimate.setPosition(100, 100);
+//	var tween = new Kinetic.Tween({
+//		  node: playerToAnimate,
+//		  x: 200,
+//		  y: 200,
+//		  duration: 2,
+//		  easing: Kinetic.Easings.BounceEaseOut
+//		  //onFinish: processAnimations(board)
+//	});
+//	tween.play();
+	
+	
+	
 }
+
+
+	
 
 /**
  * Fetch board from backend and draw it
