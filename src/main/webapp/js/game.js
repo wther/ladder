@@ -10,7 +10,17 @@ var IMGSRC_GREEN = '../images/token_green.png';
 var IMGSRC_BLUE = '../images/token_blue.png';
 var IMGSRC_YELLOW = '../images/token_yellow.png';
 
-var IMGSRC_LADDER = '../images/ladder.png';
+var IMGSRC_LADDER = '../images/ladder_';
+
+var LADDER_IMAGECOUNT = 6;
+
+var LADDER_SIZE_STEP = 80;
+//var ladder_bounds = [100, 150, 200, 400,600,800]
+
+var IMGSRC_SNAKE = '../images/snake_';
+
+var SNAKE_IMAGECOUNT = 2;
+var SNAKE_SIZE_STEP = 400;
 
 //storing board data here
 var boardData;
@@ -25,12 +35,14 @@ var playerImages;
 // example: the red player is reached by playerTokens["RED"]
 var playerTokens;
 
-//js image object for ladder
-var ladderImage;
+//js image objects for ladder
+var ladderImages;
 
+//js image objects for snakes
+var snakeImages;
 
 /**
- * returns the path of the image corresponding to the colors
+ * returns the path of the token image corresponding to the colors
  */
 function imageForColor(colorString) {
 	switch(colorString) {
@@ -47,6 +59,20 @@ function imageForColor(colorString) {
 	}
 }
 
+//index is starting from 0
+function ladderImageSourceForIndex(index) {
+	return IMGSRC_LADDER + index + ".png";
+}
+
+function snakeImageSourceForIndex(index) {
+	return IMGSRC_SNAKE + index + ".png";
+}
+
+//distance between two points
+function getDistance(x1, y1, x2, y2) {
+	return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+}
+
 
 /**
  * returns the pixel dimensions for a player token that has i index
@@ -59,7 +85,7 @@ function getTokenDim(position, i, boardSize) {
 	var pixels = fieldToPixels(position, boardSize, SIZE);
 	return {
 		X: pixels.centerX + pixels.width * radius * Math.cos(Math.PI * (1/rotMax + 2/rotMax * i)) - pixels.width * scale/2,
-		Y: pixels.centerY + pixels.width * radius * Math.sin(Math.PI * (1/rotMax + 2/rotMax * i)) - pixels.width * 0.35,
+		Y: pixels.centerY + pixels.width * radius * Math.sin(Math.PI * (1/rotMax + 2/rotMax * i)) - pixels.width * scale/2,
 		W: pixels.width * scale,
 		H: pixels.height * scale
 	};
@@ -103,6 +129,70 @@ function fieldToPixels(field, boardSize, pixelSize, padding) {
 		height : cellHeight * (1 - 2 * padding)
 	};
 }
+
+// returns a kinetic image
+function createLadderImage(fromX, fromY, toX, toY) {
+	
+	var length = getDistance(fromX, fromY, toX, toY);
+	
+	var imageIndex = Math.floor(length / LADDER_SIZE_STEP);
+	if(imageIndex < 0) ImageIndex = 0;
+	if(imageIndex >= LADDER_IMAGECOUNT) imageIndex = LADDER_IMAGECOUNT - 1;
+	
+	var rot = Math.atan2(toY - fromY, toX - fromX) * 180.0 / Math.PI;
+	
+	var dirX = (toX - fromX) / length;
+	var dirY = (toY - fromY) / length;
+	
+	var corrDirX = -dirY;
+	var corrDirY = dirX;
+	
+	var W = SIZE/15;
+	var image = new Kinetic.Image({
+		x: fromX + corrDirX * W/2,
+		y: fromY + corrDirY * W/2,
+		image: ladderImages[imageIndex],
+		width: W,
+		height: length,
+		rotation: rot - 90,
+		opacity: 0.8
+	});
+	
+	return image;	
+}
+
+// same as createLadderImage but with snakes
+function createSnakeImage(fromX, fromY, toX, toY) {
+	
+	var length = getDistance(fromX, fromY, toX, toY);
+	
+	var imageIndex = Math.floor(length / SNAKE_SIZE_STEP);
+	if(imageIndex < 0) ImageIndex = 0;
+	if(imageIndex >= SNAKE_IMAGECOUNT) imageIndex = SNAKE_IMAGECOUNT - 1;
+	
+	var rot = Math.atan2(toY - fromY, toX - fromX) * 180.0 / Math.PI;
+	
+	var dirX = (toX - fromX) / length;
+	var dirY = (toY - fromY) / length;
+	
+	var corrDirX = -dirY;
+	var corrDirY = dirX;
+	
+	var W = SIZE/20  + length / 50;
+	var image = new Kinetic.Image({
+		x: fromX + corrDirX * W/2,
+		y: fromY + corrDirY * W/2,
+		image: snakeImages[imageIndex],
+		width: W,
+		height: length,
+		rotation: rot - 90,
+		opacity: 0.8
+	});
+	
+	return image;	
+}
+
+
 
 /**
  * Draw board from scratch, it works based on the assumption that images are already loaded : player token, ladder (and snake) images
@@ -154,16 +244,16 @@ function drawBoard(board) {
 	
 	for(var i = 0; i < board.players.length; i++){
 		var player = board.players[i];
-		var Dim = getTokenDim(player.position, i, board.size);
-		playerTokens[player.color] = new kinetic.Image({
+		var Dim = getTokenDim(0, i, board.size);
+		playerTokens[player.color] = new Kinetic.Image({
 			x: Dim.X,
 			y: Dim.Y,
 			image: playerImages[player.color],
 			width: Dim.W,
 			height: Dim.H,
-			visible: true
+			visible: true,
 		});
-			
+		playerTokens[player.color].i = i;
 		playerLayer.add(playerTokens[player.color]);
 	}
 	stage.add(playerLayer);
@@ -176,6 +266,8 @@ function drawBoard(board) {
         
         var from = fieldToPixels(snake.from, board.size, SIZE);
         var to = fieldToPixels(snake.to, board.size, SIZE);
+        
+        snakeLayer.add(createSnakeImage(from.centerX, from.centerY, to.centerX, to.centerY));
         
         snakeLayer.add(new Kinetic.Line({
             points: [from.centerX, from.centerY, to.centerX, to.centerY],
@@ -193,6 +285,8 @@ function drawBoard(board) {
         var from = fieldToPixels(ladder.from, board.size, SIZE);
         var to = fieldToPixels(ladder.to, board.size, SIZE);
         
+        ladderLayer.add(createLadderImage(from.centerX, from.centerY, to.centerX, to.centerY));
+        
         ladderLayer.add(new Kinetic.Line({
             points: [from.centerX, from.centerY, to.centerX, to.centerY],
             stroke: "brown",
@@ -201,63 +295,17 @@ function drawBoard(board) {
         }));
     }
     stage.add(ladderLayer);
-    
-    var testLayer = new Kinetic.Layer();
-    var imageObj = new Image();
-	imageObj.playerColor = player.color;
-	imageObj.Dim = getTokenDim(player.position, i, board.size);
-	imageObj.i = i;
-	imageObj.onload = function(ev) {
-		var Dim = ev.target.Dim;
-		var playerImage = new Kinetic.Image({
-			x: 50,
-			y: 50,
-			image: ev.target,
-			width: 70,
-			height: 70,
-			visible: false
-		});
-		
-		testImage = playerImage;
-		
-		testLayer.add(testImage);
-		if(loadCount == board.players.length) {
-			addToStage(stage, board);
-		}
-		stage.add(testLayer);
-		
-		testImage.attrs.x = 400;
-		testImage.show();
-//		testLayer.clear();
-//		stage.clear();
-//		stage.draw();
-		
-
-		
-		var tween = new Kinetic.Tween({
-			  node: testImage,
-			  x: 100,
-			  y: 50,
-			  duration: 2,
-			  easing: Kinetic.Easings.BounceEaseOut
-			  //onFinish: processAnimations(board)
-		});
-		tween.play();
-		
-		
-	};
-	imageObj.src = imageForColor("RED");
-    
-    
+        
 }
 
 //loading image resources
 function loadResources() {
 	playerImages = {};
 	var board = boardData;
-	var maxCount = board.players.length + 1;
+	var maxCount = board.players.length + LADDER_IMAGECOUNT + SNAKE_IMAGECOUNT;
 	var loadCount = 0;
 	for(var i = 0; i < board.players.length; i++){
+		var player = board.players[i];
 		var imageObj = new Image();
 		imageObj.playerColor = player.color;
 		imageObj.onload = function(ev) {
@@ -271,16 +319,35 @@ function loadResources() {
 		imageObj.src = imageForColor(player.color);
 	}
 	
-	var ladderImageObj = new Image();
-	ladderImageObj.onload = function(ev) {
-		loadCount++;
-		
-		ladderImage = ev.target;
-		if(loadCount == maxCount) {
-			resourcesLoaded();
-		}
-	};
-	ladderImageObj.src = imageForColor(player.color);
+	ladderImages = [];
+	for(var i = 0; i < LADDER_IMAGECOUNT; i++) {
+		var ladderImageObj = new Image();
+		ladderImageObj.i = i;
+		ladderImageObj.onload = function(ev) {
+			loadCount++;
+			
+			ladderImages[ev.target.i] = ev.target;
+			if(loadCount == maxCount) {
+				resourcesLoaded();
+			}
+		};
+		ladderImageObj.src = ladderImageSourceForIndex(i);
+	}
+	snakeImages = [];
+	for(var i = 0; i < SNAKE_IMAGECOUNT; i++) {
+		var snakeImageObj = new Image();
+		snakeImageObj.i = i ;
+		snakeImageObj.onload = function(ev) {
+			loadCount++;
+			
+			snakeImages[ev.target.i] = ev.target;
+			if(loadCount == maxCount) {
+				resourcesLoaded();
+			}
+		};
+		snakeImageObj.src = snakeImageSourceForIndex(i);
+	}
+	
 	
 }
 
@@ -303,6 +370,7 @@ var Storage = {
 	};
 
 
+var processing = false;
 //storing the last animated stateChange's sequenceNumber 
 var processedUntilSequenceNumber = 0;
 
@@ -310,7 +378,9 @@ var processedUntilSequenceNumber = 0;
 var currentArrayIndex = 0;
 
 function processAnimations() {
+	processing = true;
 	//storage is used so refreshing does not make the game animate it from the beginning
+	//but that might not be desired behavior - currently it's commented out
 	//processedUntilSequenceNumber = Storage.get("processedUntilSequenceNumber") || 0;
 	
 	//we animate one animation, and it's onfinish will call this function back
@@ -324,15 +394,15 @@ function processAnimations() {
 			//animateStateChange(stateChange, boardData);
 			break;
 		}
+		if(j == boardData.stateChanges.length - 1) {
+			processing = false;
+		}
 	}
 	//Storage.set("processedUntilSequenceNumber", processedUntilSequenceNumber);
 }
 
 
 
-function testFunc() {
-	debugger;
-}
 
 function animateStateChange(stateChange, board) {
 	var playerToAnimate;
@@ -357,8 +427,7 @@ function animateStateChange(stateChange, board) {
 	playerToAnimate.attrs.y = fromDim.Y;
 	playerToAnimate.show();
 	
-	var dist = (toDim.X - fromDim.X) * (toDim.X - fromDim.X) + (toDim.Y - fromDim.Y) * (toDim.Y - fromDim.Y);
-	dist = Math.sqrt(dist);
+	var dist = getDistance(fromDim.X, fromDim.Y, toDim.X, toDim.Y);
 	dist /= SIZE/10;
 	console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
 	
@@ -367,7 +436,7 @@ function animateStateChange(stateChange, board) {
 		  x: toDim.X,
 		  y: toDim.Y,
 		  duration: dist * 1.0,
-		  //easing: Kinetic.Easings.BounceEaseOut,
+		  easing: Kinetic.Easings.BounceEaseOut,
 		  onFinish: function() {
 			  playerToAnimate.tween = null;
 			  processAnimations();
@@ -398,8 +467,13 @@ $('#roll_button').click(function(){
         data: {action: 'ROLL'},
         method: 'POST',
         success: function(data){
-            drawBoard(data);
-            processAnimations();
+//            drawBoard(data);
+//            processAnimations();
+        	boardData = data;
+        	if(!processing) {
+        		processAnimations();
+        	}
+        	
         }
     });
 });
