@@ -10,6 +10,25 @@ var IMGSRC_GREEN = '../images/token_green.png';
 var IMGSRC_BLUE = '../images/token_blue.png';
 var IMGSRC_YELLOW = '../images/token_yellow.png';
 
+var IMGSRC_LADDER = '../images/ladder.png';
+
+//storing board data here
+var boardData;
+
+//layer that contains the players
+var playerLayer;
+
+//simple js image objects
+var playerImages;
+
+//the kinetic images, stored as a dictionary with colors as keys
+// example: the red player is reached by playerTokens["RED"]
+var playerTokens;
+
+//js image object for ladder
+var ladderImage;
+
+
 /**
  * returns the path of the image corresponding to the colors
  */
@@ -86,7 +105,7 @@ function fieldToPixels(field, boardSize, pixelSize, padding) {
 }
 
 /**
- * Draw board from scratch
+ * Draw board from scratch, it works based on the assumption that images are already loaded : player token, ladder (and snake) images
  */
 function drawBoard(board) {
 
@@ -132,39 +151,22 @@ function drawBoard(board) {
 	playerTokens = {};
 	playerLayer = new Kinetic.Layer();
 	
-	var loadCount = 0;
+	
 	for(var i = 0; i < board.players.length; i++){
 		var player = board.players[i];
-		
-		var imageObj = new Image();
-		imageObj.playerColor = player.color;
-		imageObj.Dim = getTokenDim(player.position, i, board.size);
-		imageObj.i = i;
-		imageObj.onload = function(ev) {
-			loadCount++;
-			var Dim = ev.target.Dim;
-			var playerImage = new Kinetic.Image({
-				x: Dim.X,
-				y: Dim.Y,
-				image: ev.target,
-				width: Dim.W,
-				height: Dim.H
-			});
+		var Dim = getTokenDim(player.position, i, board.size);
+		playerTokens[player.color] = new kinetic.Image({
+			x: Dim.X,
+			y: Dim.Y,
+			image: playerImages[player.color],
+			width: Dim.W,
+			height: Dim.H,
+			visible: true
+		});
 			
-			playerImage.i = ev.target.i;
-			
-			playerTokens[ev.target.playerColor] = playerImage;
-			
-			playerLayer.add(playerImage);
-			if(loadCount == board.players.length) {
-				addToStage(stage, board);
-			}
-		};
-		imageObj.src = imageForColor(player.color);
-		
-		
-	  }
-	
+		playerLayer.add(playerTokens[player.color]);
+	}
+	stage.add(playerLayer);
 
         
     // Draw snakes and ladders
@@ -200,31 +202,97 @@ function drawBoard(board) {
     }
     stage.add(ladderLayer);
     
+    var testLayer = new Kinetic.Layer();
+    var imageObj = new Image();
+	imageObj.playerColor = player.color;
+	imageObj.Dim = getTokenDim(player.position, i, board.size);
+	imageObj.i = i;
+	imageObj.onload = function(ev) {
+		var Dim = ev.target.Dim;
+		var playerImage = new Kinetic.Image({
+			x: 50,
+			y: 50,
+			image: ev.target,
+			width: 70,
+			height: 70,
+			visible: false
+		});
+		
+		testImage = playerImage;
+		
+		testLayer.add(testImage);
+		if(loadCount == board.players.length) {
+			addToStage(stage, board);
+		}
+		stage.add(testLayer);
+		
+		testImage.attrs.x = 400;
+		testImage.show();
+//		testLayer.clear();
+//		stage.clear();
+//		stage.draw();
+		
+
+		
+		var tween = new Kinetic.Tween({
+			  node: testImage,
+			  x: 100,
+			  y: 50,
+			  duration: 2,
+			  easing: Kinetic.Easings.BounceEaseOut
+			  //onFinish: processAnimations(board)
+		});
+		tween.play();
+		
+		
+	};
+	imageObj.src = imageForColor("RED");
     
-    if(loaded1) {
-		processAnimations();
-	}else {
-		loaded2 = true;
-	}
-    processAnimations();
     
-    loaded2 = true;
 }
 
-var loaded1 = false;
-var loaded2 = false;
-function addToStage(stage) {
-	stage.add(playerLayer);
-	
-	
-	if(loaded2) {
-		processAnimations();
-	}else {
-		loaded1 = true;
+//loading image resources
+function loadResources() {
+	playerImages = {};
+	var board = boardData;
+	var maxCount = board.players.length + 1;
+	var loadCount = 0;
+	for(var i = 0; i < board.players.length; i++){
+		var imageObj = new Image();
+		imageObj.playerColor = player.color;
+		imageObj.onload = function(ev) {
+			loadCount++;
+			
+			playerImages[ev.target.playerColor] = ev.target;
+			if(loadCount == maxCount) {
+				resourcesLoaded();
+			}
+		};
+		imageObj.src = imageForColor(player.color);
 	}
+	
+	var ladderImageObj = new Image();
+	ladderImageObj.onload = function(ev) {
+		loadCount++;
+		
+		ladderImage = ev.target;
+		if(loadCount == maxCount) {
+			resourcesLoaded();
+		}
+	};
+	ladderImageObj.src = imageForColor(player.color);
+	
 }
 
-	  
+//this func is called when images are loaded
+function resourcesLoaded() {
+	drawBoard(boardData);
+	processAnimations();
+}
+
+//localstorage variable
+//storing: Storage.set("key", value);
+//loading: var val = Storage.get("key"); //returns null if key is not found
 var Storage = {
 	    set: function(key, value) {
 	        localStorage[key] = JSON.stringify(value);
@@ -234,10 +302,12 @@ var Storage = {
 	    }
 	};
 
-var processedUntilSequenceNumber = 0;
-var currentArrayIndex = 0;
 
-var boardData;
+//storing the last animated stateChange's sequenceNumber 
+var processedUntilSequenceNumber = 0;
+
+//will be used for optimisation - so that the for loop doesn't need to loop through all stateChanges
+var currentArrayIndex = 0;
 
 function processAnimations() {
 	//storage is used so refreshing does not make the game animate it from the beginning
@@ -247,19 +317,18 @@ function processAnimations() {
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
 		var stateChange = boardData.stateChanges[j];
 		if(stateChange.sequenceNumber > processedUntilSequenceNumber) {
-			console.log(stateChange.sequenceNumber);
-			processedUntilSequenceNumber = stateChange.sequenceNumber;
-			currentArrayIndex = j+1;
+			//console.log("SN: " + stateChange.sequenceNumber);
 			animateStateChange(stateChange, boardData);
+			processedUntilSequenceNumber = stateChange.sequenceNumber;
+			//currentArrayIndex = j+1;
+			//animateStateChange(stateChange, boardData);
 			break;
 		}
 	}
 	//Storage.set("processedUntilSequenceNumber", processedUntilSequenceNumber);
 }
 
-var playerLayer;
 
-var playerTokens;
 
 function testFunc() {
 	debugger;
@@ -269,7 +338,8 @@ function animateStateChange(stateChange, board) {
 	var playerToAnimate;
 	
 	playerToAnimate = playerTokens[stateChange.playerColor];
-	if( playerToAnimate === undefined) {
+	if( playerToAnimate === undefined || playerToAnimate.tween != null) {
+		console.log("dilation");
 		setTimeout(function() {
 			animateStateChange(stateChange, board);
 		}, 200);
@@ -283,72 +353,28 @@ function animateStateChange(stateChange, board) {
 	var fromDim = getTokenDim(stateChange.from, playerToAnimate.i, board.size);
 	var toDim = getTokenDim(stateChange.to, playerToAnimate.i, board.size);
 	
-	var tween2 = new Kinetic.Tween({
+	playerToAnimate.attrs.x = fromDim.X;
+	playerToAnimate.attrs.y = fromDim.Y;
+	playerToAnimate.show();
+	
+	var dist = (toDim.X - fromDim.X) * (toDim.X - fromDim.X) + (toDim.Y - fromDim.Y) * (toDim.Y - fromDim.Y);
+	dist = Math.sqrt(dist);
+	dist /= SIZE/10;
+	console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
+	
+	var tween = new Kinetic.Tween({
 		  node: playerToAnimate,
-		  x: fromDim.X,
-		  y: fromDim.Y,
-		  duration: 0.5,
-		  easing: Kinetic.Easings.BounceEaseOut,
+		  x: toDim.X,
+		  y: toDim.Y,
+		  duration: dist * 1.0,
+		  //easing: Kinetic.Easings.BounceEaseOut,
 		  onFinish: function() {
-			  playerToAnimate.setPosition(fromDim.X, fromDim.Y);
-				playerToAnimate.show();
-				playerLayer.draw();
-				var tween = new Kinetic.Tween({
-					  node: playerToAnimate,
-					  x: toDim.X,
-					  y: toDim.Y,
-					  duration: 2,
-					  easing: Kinetic.Easings.BounceEaseOut
-					  //onFinish: processAnimations(board)
-				});
-				tween.onFinish = processAnimations;
-				tween.play();
+			  playerToAnimate.tween = null;
+			  processAnimations();
 		  }
 	});
-	tween2.play();
-//	playerToAnimate.setPosition(fromDim.X, fromDim.Y);
-//	playerToAnimate.show();
-//	playerLayer.draw();
-//	var tween = new Kinetic.Tween({
-//		  node: playerToAnimate,
-//		  x: toDim.X,
-//		  y: toDim.Y,
-//		  duration: 2,
-//		  easing: Kinetic.Easings.BounceEaseOut
-//		  //onFinish: processAnimations(board)
-//	});
-//	tween.onFinish = processAnimations;
-//	tween.play();
-	
-	//
-//	var myfunc = function () {
-//	  	if(count == 0) return;
-//	  	count--;
-//	    currentX += 60;
-//	    var tween = new Kinetic.Tween({
-//    		  node: sprite,
-//    		  x: currentX,
-//    		  y: 550,
-//    		  duration: 0.5,
-//    		  easing: Kinetic.Easings.BounceEaseOut
-//	    });
-//	    tween.onFinish =  myfunc;
-//	    tween.play();
-//  }
-//  
-//  myfunc();
-	
-//	playerToAnimate.setPosition(100, 100);
-//	var tween = new Kinetic.Tween({
-//		  node: playerToAnimate,
-//		  x: 200,
-//		  y: 200,
-//		  duration: 2,
-//		  easing: Kinetic.Easings.BounceEaseOut
-//		  //onFinish: processAnimations(board)
-//	});
-//	tween.play();
-	
+	playerToAnimate.tween = tween;
+	tween.play();
 	
 	
 }
@@ -361,7 +387,8 @@ function animateStateChange(stateChange, board) {
  */
 function refreshBoard() {
     $.get('board', function(data) {
-        drawBoard(data);
+    	boardData = data;
+        loadResources();
     });
 }
 
@@ -372,6 +399,7 @@ $('#roll_button').click(function(){
         method: 'POST',
         success: function(data){
             drawBoard(data);
+            processAnimations();
         }
     });
 });
