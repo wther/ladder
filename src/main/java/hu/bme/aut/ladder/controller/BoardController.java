@@ -1,7 +1,5 @@
 package hu.bme.aut.ladder.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.bme.aut.ladder.controller.dto.BoardDTO;
 import static hu.bme.aut.ladder.data.entity.GameEntity.GameState.BOARD_STARTED;
 import hu.bme.aut.ladder.data.entity.UserEntity;

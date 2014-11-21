@@ -15,7 +15,6 @@ import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.UserService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;

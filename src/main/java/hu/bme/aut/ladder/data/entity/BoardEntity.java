@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
@@ -56,6 +57,12 @@ public class BoardEntity {
     private List<PlayerEntity> players;
     
     /**
+     * Value indicating who is the next player
+     */
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    private PlayerEntity nextPlayer;
+    
+    /**
      * Player state changes on board, e.g. moves
      */
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -100,6 +107,14 @@ public class BoardEntity {
 
     public void setStateChanges(List<StateChangeEntity> stateChanges) {
         this.stateChanges = stateChanges;
+    }
+
+    public PlayerEntity getNextPlayer() {
+        return nextPlayer;
+    }
+
+    public void setNextPlayer(PlayerEntity nextPlayer) {
+        this.nextPlayer = nextPlayer;
     }
 
     @Override

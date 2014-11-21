@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.mockito.Mockito.mock;
@@ -142,6 +143,82 @@ public class SimpleBoardStrategyImplTest {
         assertEquals(positions[positions.length-1], board.getPlayers().get(0).getPosition());
     }
     
+    
+    /**
+     * Test that when next player is missing the player who initiated the
+     * action is assumed the next player, and the next player becomes
+     * the {@link BoardEntity#nextPlayer}
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatNextPlayerIsSetEvenIfMissing() throws BoardActionNotPermitted {
+        
+        BoardEntity board = mockBoard(2);
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        
+        // Assert
+        assertEquals("Next player should be set to the player after 0", board.getPlayers().get(1), board.getNextPlayer());        
+    }
+    
+    /**
+     * Test that when the last player takes a turn the next player is 
+     * the first player
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatFirstPlayerComesAfterLastPlayer() throws BoardActionNotPermitted {
+        
+        final int numberOfPlayers = 4;
+        BoardEntity board = mockBoard(numberOfPlayers);
+        board.setNextPlayer(board.getPlayers().get(numberOfPlayers-1));
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(numberOfPlayers-1), "ROLL");
+        
+        // Assert
+        assertEquals("First player should be on turn", board.getPlayers().get(0), board.getNextPlayer());        
+    }
+    
+    /**
+     * Test that a player can't roll the dice out of turn
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test(expected = BoardActionNotPermitted.class)
+    public void thatPlayerOnlyNextPlayerCanTakeTurn() throws BoardActionNotPermitted {
+        final int numberOfPlayers = 4;
+        BoardEntity board = mockBoard(numberOfPlayers);
+        board.setNextPlayer(board.getPlayers().get(numberOfPlayers-1));
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+    }
+    
+    /**
+     * Test that if a Robot player is added, than the strategy doesn't have to be 
+     * called with that player, it acts automatically.
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatRobotPlayerTakesActionAutomatically() throws BoardActionNotPermitted {
+        
+        final int numberOfPlayers = 4;
+        BoardEntity board = mockBoard(numberOfPlayers);
+        board.getPlayers().get(1).setType(PlayerEntity.Type.ROBOT);
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        
+        // Assert
+        assertEquals("Third player should be next", board.getPlayers().get(2), board.getNextPlayer());
+        assertNotEquals("Robot should've moved", board.getPlayers().get(1).getPosition(), 0);
+    }
+    
     /**
      * Creates a simple board
      * 
@@ -160,6 +237,7 @@ public class SimpleBoardStrategyImplTest {
             PlayerEntity player = new PlayerEntity();
             player.setPlayerId(new Long(i));
             player.setPosition(0);
+            player.setType(PlayerEntity.Type.HUMAN);
             players.add(player);
         }
         

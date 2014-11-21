@@ -31,17 +31,47 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
      */
     private Dice dice = new SimpleDiceImpl();
     
+    
     /**
      * {@inheritDoc}
      */
     @Override
     public void executeAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted {
+    
+        if(player.getType() != PlayerEntity.Type.HUMAN){
+            throw new IllegalArgumentException("Only human players can take actions");
+        }
+        
+        // If next player is not set let that be the player
+        if(board.getNextPlayer() == null){
+            board.setNextPlayer(player);
+            
+        // Otherwise verify that it is indeed player's turn
+        } else if(!player.equals(board.getNextPlayer())){
+            throw new BoardActionNotPermitted(
+                    "Expected " + board.getNextPlayer().getName() + 
+                    " to take a turn but was attempted by " + player.getName());
+        }
         
         // Only rolling is allowed in the simple version
         if(!"ROLL".equalsIgnoreCase(action)){
             throw new BoardActionNotPermitted("Only ROLL is permitted by " + this.getClass().getSimpleName());
         }
         
+        // Move the next player and any number of robot players
+        // after him until a human player is reached
+        PlayerEntity currentPlayer = player;
+        do {
+            executeRollForOnePlayer(board, currentPlayer);
+            currentPlayer = board.getNextPlayer();            
+        } while (board.getNextPlayer().getType() == PlayerEntity.Type.ROBOT);
+    }
+    
+    /**
+     * Executes an action for a single player, human/robot the same. Doesn't move any other player
+     */
+    private void executeRollForOnePlayer(BoardEntity board, PlayerEntity player) throws BoardActionNotPermitted {
+                
         // Determine new sequence number of action
         int sequenceNumber = 0;
         if(board.getStateChanges().size() > 0){
@@ -50,6 +80,16 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
         
         int toPosition = player.getPosition() + dice.getNext();
         movePlayerRecursively(board, player, toPosition, sequenceNumber);
+                
+        int i = 0;
+        for(; i < board.getPlayers().size(); i++){
+            if(board.getPlayers().get(i).equals(player)){
+                break;
+            }
+        }
+        
+        // Set next player to (i+1) mod NumberOfPlayers
+        board.setNextPlayer(board.getPlayers().get((i+1) % board.getPlayers().size()));
     }
     
     /**
