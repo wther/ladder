@@ -44,6 +44,10 @@ var snakeImages;
 //kinetic field rectangles
 var fieldRects;
 
+//js image objects
+var diceImages;
+
+
 //the player obj that is me of the boardData (not the kinetic image)
 function playerMe() {
 	for(var i = 0; i < boardData.players.length; i++){
@@ -389,6 +393,11 @@ function loadResources() {
 		};
 		snakeImageObj.src = snakeImageSourceForIndex(i);
 	}
+	diceImages = [];
+	for(var i = 0; i < 6; i++) {
+		diceImages[i] = $('#dice_' + (i+1));
+	}
+	
 	
 	
 }
@@ -399,17 +408,42 @@ function resourcesLoaded() {
 	processAnimations();
 }
 
+//shows the die with rollValue
+function showDice(rollValue) {
+	for(var i = 0; i < 6; i++) {
+		diceImages[i].css("display", "none");
+	}
+	diceImages[rollValue - 1].css("display", "inline-block");
+}
+
 var rollAnim;
 //dice is rolled, player has to click on correspondent field to advance
 function rolled() {
 
 	$("#roll_button").attr("disabled", "disabled");
 	var stateChange = getNextStateChange();
-	playerMustClickHere = stateChange.to;
-	animateFieldToBeClicked(playerMustClickHere);
+	if(playerMe().color === stateChange.playerColor) {
+		safeProcessAnimations();
+	}
 	
 }
 
+//clickBlocking means that no stateChanges must be animated until the player clicks on the correct field
+var clickBlocking = false;
+//fieldClicked is true when the player has clicked on the correct field
+var fieldClicked = false;
+
+//this function makes the player click on the next field where the player needs to move
+function clickFieldBlocking(stateChange) {
+	clickBlocking = true;
+	var rollValue = stateChange.to - stateChange.from;
+	//showDice(rollValue);
+	
+	playerMustClickHere = stateChange.to;
+	animateFieldToBeClicked(playerMustClickHere);
+}
+
+// animates the area to be clicked within animate
 function animateFieldToBeClicked(pos) {
 	stopRollAnim();
 	var period = 2000;
@@ -417,8 +451,7 @@ function animateFieldToBeClicked(pos) {
 	var defFill = field.fill();
 	rollAnim = new Kinetic.Animation(function(frame) {
         var scale = Math.sin(frame.time * 2 * Math.PI / period) / 2 + 0.5;
-        scale *= 155;
-        var color = 'rgb(170,' + (100 + Math.floor(scale)) + ',170)';
+        var color = 'rgb(120,' + (200 + Math.floor(scale*55) )+ ',' + (150 + Math.floor(scale*105)) + ')';
         field.fill(color);
       }, boardLayer);
 	rollAnim.targetObject = field;
@@ -432,6 +465,7 @@ function stopRollAnim() {
 		return;
 	}
 	rollAnim.stop();
+	
 	var stateName = rollAnim.objectDefStateName;
 	var stateVal = rollAnim.objectDefStateVal;
 	rollAnim.targetObject.fill(stateVal);
@@ -439,8 +473,10 @@ function stopRollAnim() {
 	
 }
 
+//stores the position where the player must click
 var playerMustClickHere;
-//
+
+//detects if the player clicked on the correct field after a roll
 function stageClicked(evt) {
 	console.log("stage Clicked");
 	var XY = stage.getPointerPosition();
@@ -451,8 +487,9 @@ function stageClicked(evt) {
 	console.log("position: " + pos);
 	if(playerMustClickHere === pos) {
 		stopRollAnim();
-		playerMustClickHere = null;
-		safeProcessAnimations();
+		
+		fieldClicked = true;
+		processAnimations();
 	}
 	
 }
@@ -481,23 +518,51 @@ function getNextStateChange() {
 	}
 	return null;
 }
+
+// if last player animated is the same as current to be animated player, 
+//it is climbing/sliding on a ladder/snake, so no need for a click (clickFieldBlocking)
+var lastPlayerAnimated;
 function processAnimations() {
-	if(playerMustClickHere != null) return;
+	//animateFieldClicked means the player clicked on the right field, and this time we can animate that stateChange
+	var animateFieldClicked = false;
+	if(fieldClicked) {
+		clickBlocking = false;
+		animateFieldClicked = true;
+		fieldClicked = false;
+	}
+	if(clickBlocking) {
+		return;
+	}
+	
 	processing = true;
 	
 	//we animate one animation, and it's onfinish will call this function back
 	var stateChange = getNextStateChange();
+	
 	if(stateChange != null) {
-		animateStateChange(stateChange, boardData);
-		processedUntilSequenceNumber = stateChange.sequenceNumber;
+		//if this was a dice roll, then show the dice
+		if(lastPlayerAnimated == undefined || stateChange.playerColor != lastPlayerAnimated) {
+			showDice(stateChange.to - stateChange.from);
+		}
+		//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
+		if(playerMe().color === stateChange.playerColor && !animateFieldClicked && stateChange.playerColor != lastPlayerAnimated) {
+			clickFieldBlocking(stateChange);
+		}
+		else {
+			lastPlayerAnimated = stateChange.playerColor;
+			animateStateChange(stateChange, boardData);
+			processedUntilSequenceNumber = stateChange.sequenceNumber;
+		}
 	}
 	else {
 		processing = false;
-		$("#roll_button").removeAttr("disabled");
+		if(lastPlayerAnimated == undefined || lastPlayerAnimated != playerMe().color) {
+			$("#roll_button").removeAttr("disabled");
+		}
+		
 	}
 	
 }
-
 
 
 
@@ -505,13 +570,6 @@ function animateStateChange(stateChange, board) {
 	var playerToAnimate;
 	
 	playerToAnimate = playerTokens[stateChange.playerColor];
-	if( playerToAnimate === undefined || playerToAnimate.tween != null) {
-		console.log("dilation");
-		setTimeout(function() {
-			animateStateChange(stateChange, board);
-		}, 200);
-		return;
-	}
 	
 	if( playerToAnimate === undefined) {
 		throw "bad argument in animateStateChange";
@@ -532,14 +590,11 @@ function animateStateChange(stateChange, board) {
 		  node: playerToAnimate,
 		  x: toDim.X,
 		  y: toDim.Y,
-		  duration: dist * 1.0,
+		  duration: 1 + dist / 10.0,
 		  easing: Kinetic.Easings.BounceEaseOut,
-		  onFinish: function() {
-			  playerToAnimate.tween = null;
-			  processAnimations();
-		  }
+		  onFinish: processAnimations
 	});
-	playerToAnimate.tween = tween;
+	
 	tween.play();
 	
 	
@@ -562,7 +617,10 @@ function refreshBoard() {
     $.get('board', function(data) {
     	boardData = data;
     	var stateChanges = boardData.stateChanges;
-    	processedUntilSequenceNumber = stateChanges[stateChanges.length - 1].sequenceNumber;
+    	if(stateChanges.length > 0) {
+    		processedUntilSequenceNumber = stateChanges[stateChanges.length - 1].sequenceNumber;
+    	}
+    	
         loadResources();
     });
 }

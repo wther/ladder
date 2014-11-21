@@ -2,3 +2,11 @@ div#container {
 	background-color: #eeeeee;
 	text-align: center;
 }
+
+#rollDiv {
+	
+}
+
+img.diceImage {
+	display: none;
+}
