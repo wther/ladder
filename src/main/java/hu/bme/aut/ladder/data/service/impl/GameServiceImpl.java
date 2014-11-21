@@ -46,8 +46,6 @@ public class GameServiceImpl implements GameService {
 
     /**
      * {@inheritDoc}
-     * @param host 
-     * @throws hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException 
      */
     @Override
     public GameEntity intializeGame(UserEntity host) throws GameActionNotAllowedException {
@@ -200,5 +198,17 @@ public class GameServiceImpl implements GameService {
     @Override
     public List<UserEntity> findUsersInGame(GameEntity game) {
         return userRepository.findByGame(game);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setNumberOfRobots(GameEntity game, int numberOfRobots) {
+        if(numberOfRobots < 0){
+            throw new IllegalArgumentException("Number of robots has to be 0 or higher");
+        }
+        game.setNumberOfRobots(numberOfRobots);
+        repository.save(game);
     }
 }

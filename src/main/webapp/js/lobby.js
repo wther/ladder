@@ -84,6 +84,29 @@ function RefreshRooms() {
     });
 }
 
+function RefreshUserName(){
+    $.ajax({
+        url: "user/details",
+        success: function (data) {
+            $('#userName').val(data.name);
+        },
+        error: HandleError
+    });
+}
+
+function SaveUserName(){
+    $.ajax({
+        method: 'POST',
+        url: "user/name",
+        data: {'name': $('#userName').val()},
+        success: function (data) {
+            RefreshRooms();
+        },
+        error: HandleError
+    });
+}
+
 $(function () {
+    RefreshUserName();
     RefreshRooms();
-})
+});

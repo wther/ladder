@@ -49,6 +49,12 @@ public class UserEntity {
     private GameEntity game;
     
     /**
+     * Value indicating that player is ready to start playing or not
+     */
+    @Column
+    private Boolean ready;
+    
+    /**
      * The player this user represents
      */
     @OneToOne(optional = true, cascade = CascadeType.ALL)
@@ -92,6 +98,14 @@ public class UserEntity {
 
     public void setPlayer(PlayerEntity player) {
         this.player = player;
+    }
+
+    public Boolean getReady() {
+        return ready;
+    }
+
+    public void setReady(Boolean ready) {
+        this.ready = ready;
     }
 
     @Override

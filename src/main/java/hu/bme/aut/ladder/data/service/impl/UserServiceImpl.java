@@ -44,7 +44,28 @@ public class UserServiceImpl implements UserService {
             return userInDB;
         }
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setNameForUser(UserEntity user, String newName) {
+        user.setName(newName);
+        userRepository.save(user);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setUserReady(UserEntity user, boolean isReady) {
+        user.setReady(isReady);
+        userRepository.save(user);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UserEntity> findAll() {
         return userRepository.findAll();

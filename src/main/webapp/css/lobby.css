@@ -96,8 +96,6 @@ div.button {
 	border-radius: 5px;
 	color: #DDFFFF;
 	position: relative;
-	margin-top: 20px;
-	
 	cursor: pointer;
 	transition: all 0.5s;
 	display: inline-block;
@@ -109,6 +107,7 @@ div.button:hover {
 }
 #buttonRow {
 	display: flex;
+        margin-top:20px;
 }
 
 #createRoom {

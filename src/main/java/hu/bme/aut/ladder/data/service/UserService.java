@@ -25,4 +25,14 @@ public interface UserService {
      */
     List<UserEntity> findAll();
     
+    /**
+     * Set the name for a user
+     */
+    void setNameForUser(UserEntity user, String newName);
+    
+    /**
+     * Set the value indicating that user is ready or not for a game to start
+     */
+    void setUserReady(UserEntity user, boolean isReady);
+    
 }

@@ -3,8 +3,10 @@ package hu.bme.aut.ladder.controller;
 import hu.bme.aut.ladder.BaseControllerTest;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
+import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.ROBOT;
 import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +49,7 @@ public class RoomControllerTest extends BaseControllerTest {
         mockMvc
             .perform(get(RoomController.GAME_DETAILS).session(session))
             .andExpect(status().is(HttpStatus.OK.value()))
+            .andExpect(jsonPath("$.numberOfRobots", is(0)))
             .andExpect(jsonPath("$.allPlayers", hasSize(2)));
     }
     
@@ -98,4 +101,40 @@ public class RoomControllerTest extends BaseControllerTest {
                 .andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
     }
     
+     /**
+     * Play this scenario:
+     * <ul>
+     *  <li> Create a new game </li>
+     *  <li> Add robots to it </li>
+     *  <li> Start the game </li>
+     * </ul>
+     */
+    @Test
+    public void thatHostCanStartAGameWithRobots() throws Exception {
+        // Create game once
+        MockHttpSession hostSession = createNewGame();
+        
+        final int numberOfPlayers = 4;
+        
+        // Add robots to the game
+        mockMvc
+            .perform(post(RoomController.GAME_ROBOT_NUMBER)
+                    .session(hostSession)
+                    .param("number", Integer.toString(numberOfPlayers-1)))
+            .andExpect(status().is(HttpStatus.OK.value()));
+        
+        mockMvc
+            .perform(post(RoomController.GAME_START_URI).session(hostSession))
+            .andExpect(status().is(HttpStatus.OK.value()));
+        
+        // Assert
+        final BoardEntity board = gameRepository.findAll().get(0).getBoard();
+        
+        assertNotNull(board);
+        assertEquals(numberOfPlayers, board.getPlayers().size());
+        
+        for(int i = 1; i < numberOfPlayers; i++){
+            assertEquals("Player " + i + " should be a ROBOT", ROBOT, board.getPlayers().get(i).getType());
+        }
+    }
 }
