@@ -41,6 +41,19 @@ var ladderImages;
 //js image objects for snakes
 var snakeImages;
 
+//kinetic field rectangles
+var fieldRects;
+
+//the player obj that is me of the boardData (not the kinetic image)
+function playerMe() {
+	for(var i = 0; i < boardData.players.length; i++){
+		var player = boardData.players[i];
+		if(player.isMe) {
+			return player;
+		}
+	}
+}
+
 /**
  * returns the path of the token image corresponding to the colors
  */
@@ -130,6 +143,24 @@ function fieldToPixels(field, boardSize, pixelSize, padding) {
 	};
 }
 
+// the inverse of fieldToPixels for event handling
+function pixelToField(x, y) {
+	console.log("x, y: " + x + ", " + y);
+	var boardSize = boardData.size;
+	var width = parseInt(Math.sqrt(boardSize));
+	var pixelSize = SIZE;
+	//var padding = 0.06;
+	
+	var cellWidth = pixelSize / width;
+	var cellHeight = pixelSize / width;
+	var i = Math.floor(x / cellWidth);
+	var j = width - 1 - Math.floor(y / cellHeight);
+	var position = j * width;
+	position += (j % 2 === 1) ? width - i - 1 : i;
+	
+	return position;
+}
+
 // returns a kinetic image
 function createLadderImage(fromX, fromY, toX, toY) {
 	
@@ -193,6 +224,8 @@ function createSnakeImage(fromX, fromY, toX, toY) {
 }
 
 
+var stage;
+var boardLayer;
 
 /**
  * Draw board from scratch, it works based on the assumption that images are already loaded : player token, ladder (and snake) images
@@ -201,26 +234,33 @@ function drawBoard(board) {
 
 	boardData = board;
 	
-	var stage = new Kinetic.Stage({
+	stage = new Kinetic.Stage({
 		container : 'container',
 		width : 600,
 		height : 600
 	});
 
-	var boardLayer = new Kinetic.Layer();
-
+	boardLayer = new Kinetic.Layer();
+	fieldRects = [];
+	
 	// Draw board
 	for(var i = 0; i < board.size; i++){
             var pixels = fieldToPixels(i, board.size, SIZE, 0.06);
-            boardLayer.add(new Kinetic.Rect({
-                    x : pixels.topX,
-                    y : pixels.topY,
-                    width : pixels.width,
-                    height : pixels.height,
-                    fill : '#aaffaa',
-                    stroke : 'black',
-                    strokeWidth : 1
-            }));
+            var rect = new Kinetic.Rect({
+                x : pixels.topX,
+                y : pixels.topY,
+                width : pixels.width,
+                height : pixels.height,
+                fill : '#aaffaa',
+                stroke : 'black',
+                strokeWidth : 1
+            });
+            rect.position = i;
+            rect.on('click', function(evt) {
+                console.log("rect clicked: " + evt.target.position);
+              });
+            fieldRects[i] = rect;
+            boardLayer.add(rect);
             boardLayer.add(new Kinetic.Text({
                     x : pixels.topX,
                     y : pixels.centerY,
@@ -230,6 +270,7 @@ function drawBoard(board) {
                     text : "" + (i+1),
                     fill : "black"
             }));
+            
         }
         
 
@@ -244,7 +285,7 @@ function drawBoard(board) {
 	
 	for(var i = 0; i < board.players.length; i++){
 		var player = board.players[i];
-		var Dim = getTokenDim(0, i, board.size);
+		var Dim = getTokenDim(player.position, i, board.size);
 		playerTokens[player.color] = new Kinetic.Image({
 			x: Dim.X,
 			y: Dim.Y,
@@ -279,7 +320,7 @@ function drawBoard(board) {
     stage.add(snakeLayer);
     
     var ladderLayer = new Kinetic.Layer();
-    for(var i in board.ladders){
+    for(var i in board.ladders) {
         var ladder = board.ladders[i];
         
         var from = fieldToPixels(ladder.from, board.size, SIZE);
@@ -295,7 +336,8 @@ function drawBoard(board) {
         }));
     }
     stage.add(ladderLayer);
-        
+    
+    stage.getContent().addEventListener('click', stageClicked);
 }
 
 //loading image resources
@@ -357,18 +399,70 @@ function resourcesLoaded() {
 	processAnimations();
 }
 
-//localstorage variable
-//storing: Storage.set("key", value);
-//loading: var val = Storage.get("key"); //returns null if key is not found
-var Storage = {
-	    set: function(key, value) {
-	        localStorage[key] = JSON.stringify(value);
-	    },
-	    get: function(key) {
-	        return localStorage[key] ? JSON.parse(localStorage[key]) : null;
-	    }
-	};
+var rollAnim;
+//dice is rolled, player has to click on correspondent field to advance
+function rolled() {
 
+	$("#roll_button").attr("disabled", "disabled");
+	var stateChange = getNextStateChange();
+	playerMustClickHere = stateChange.to;
+	animateFieldToBeClicked(playerMustClickHere);
+	
+}
+
+function animateFieldToBeClicked(pos) {
+	stopRollAnim();
+	var period = 2000;
+	var field = fieldRects[pos];
+	var defFill = field.fill();
+	rollAnim = new Kinetic.Animation(function(frame) {
+        var scale = Math.sin(frame.time * 2 * Math.PI / period) / 2 + 0.5;
+        scale *= 155;
+        var color = 'rgb(170,' + (100 + Math.floor(scale)) + ',170)';
+        field.fill(color);
+      }, boardLayer);
+	rollAnim.targetObject = field;
+	rollAnim.objectDefStateName = "fill";
+	rollAnim.objectDefStateVal = defFill;
+	rollAnim.start();
+}
+
+function stopRollAnim() {
+	if(rollAnim == undefined) {
+		return;
+	}
+	rollAnim.stop();
+	var stateName = rollAnim.objectDefStateName;
+	var stateVal = rollAnim.objectDefStateVal;
+	rollAnim.targetObject.fill(stateVal);
+	boardLayer.draw();
+	
+}
+
+var playerMustClickHere;
+//
+function stageClicked(evt) {
+	console.log("stage Clicked");
+	var XY = stage.getPointerPosition();
+	var x = XY.x;
+	var y = XY.y;
+	var pixels = fieldToPixels(17, boardData.size, SIZE, 0.06);
+	var pos = pixelToField(x, y);
+	console.log("position: " + pos);
+	if(playerMustClickHere === pos) {
+		stopRollAnim();
+		playerMustClickHere = null;
+		safeProcessAnimations();
+	}
+	
+}
+
+//only calls processAnimations if it's not currently processing
+function safeProcessAnimations() {
+	if(!processing) {
+		processAnimations();
+	}
+}
 
 var processing = false;
 //storing the last animated stateChange's sequenceNumber 
@@ -377,28 +471,31 @@ var processedUntilSequenceNumber = 0;
 //will be used for optimisation - so that the for loop doesn't need to loop through all stateChanges
 var currentArrayIndex = 0;
 
-function processAnimations() {
-	processing = true;
-	//storage is used so refreshing does not make the game animate it from the beginning
-	//but that might not be desired behavior - currently it's commented out
-	//processedUntilSequenceNumber = Storage.get("processedUntilSequenceNumber") || 0;
-	
-	//we animate one animation, and it's onfinish will call this function back
+
+function getNextStateChange() {
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
 		var stateChange = boardData.stateChanges[j];
 		if(stateChange.sequenceNumber > processedUntilSequenceNumber) {
-			//console.log("SN: " + stateChange.sequenceNumber);
-			animateStateChange(stateChange, boardData);
-			processedUntilSequenceNumber = stateChange.sequenceNumber;
-			//currentArrayIndex = j+1;
-			//animateStateChange(stateChange, boardData);
-			break;
-		}
-		if(j == boardData.stateChanges.length - 1) {
-			processing = false;
+			return stateChange;
 		}
 	}
-	//Storage.set("processedUntilSequenceNumber", processedUntilSequenceNumber);
+	return null;
+}
+function processAnimations() {
+	if(playerMustClickHere != null) return;
+	processing = true;
+	
+	//we animate one animation, and it's onfinish will call this function back
+	var stateChange = getNextStateChange();
+	if(stateChange != null) {
+		animateStateChange(stateChange, boardData);
+		processedUntilSequenceNumber = stateChange.sequenceNumber;
+	}
+	else {
+		processing = false;
+		$("#roll_button").removeAttr("disabled");
+	}
+	
 }
 
 
@@ -448,7 +545,14 @@ function animateStateChange(stateChange, board) {
 	
 }
 
-
+//refreshes the board data but does not redraw it
+function refreshBoardData() {
+	$.get('board', function(data) {
+    	boardData = data;
+    	
+    	safeProcessAnimations();
+    });
+}
 	
 
 /**
@@ -457,6 +561,8 @@ function animateStateChange(stateChange, board) {
 function refreshBoard() {
     $.get('board', function(data) {
     	boardData = data;
+    	var stateChanges = boardData.stateChanges;
+    	processedUntilSequenceNumber = stateChanges[stateChanges.length - 1].sequenceNumber;
         loadResources();
     });
 }
@@ -470,12 +576,12 @@ $('#roll_button').click(function(){
 //            drawBoard(data);
 //            processAnimations();
         	boardData = data;
-        	if(!processing) {
-        		processAnimations();
-        	}
+        	rolled();
         	
         }
     });
 });
 
 refreshBoard();
+
+setInterval(refreshBoardData, 1500);
