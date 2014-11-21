@@ -43,6 +43,14 @@ public interface GameService {
     void startGame(GameEntity game) throws GameActionNotAllowedException;
     
     /**
+     * Set the number of robots for the game
+     * 
+     * @param game
+     * @param numberOfRobots 
+     */
+    void setNumberOfRobots(GameEntity game, int numberOfRobots);
+    
+    /**
      * Find game by its id 
      * 
      * @param id

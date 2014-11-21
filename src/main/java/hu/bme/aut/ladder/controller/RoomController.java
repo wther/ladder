@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -41,6 +42,11 @@ public class RoomController extends BaseGameController {
      * URI to create leave a game
      */
     public static final String GAME_START_URI = "/game/start";
+    
+    /**
+     * URI to create leave a game
+     */
+    public static final String GAME_ROBOT_NUMBER = "/game/robots";
     
     /**
      * Returns a list of all the started games
@@ -97,7 +103,41 @@ public class RoomController extends BaseGameController {
         service.startGame(user.getGame());
         return new ResponseEntity<String>(HttpStatus.OK);
     }
-
+    
+    
+    /**
+     * Sets the number of robots in the game
+     * 
+     * @param request
+     */
+    @RequestMapping(value = GAME_ROBOT_NUMBER, method = RequestMethod.POST)
+    public ResponseEntity<String> robots(HttpServletRequest request, @RequestParam int number) throws GameActionNotAllowedException {
+        final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
+        
+        LOGGER.info("{} is attempting to set the number of robots for game {} to {}", user, user.getGame(), number);
+        
+        if(user.getGame() == null){
+            LOGGER.warn("No game associated with {}", user.getName());
+            return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+        }
+        
+        // If user is not host
+        if(!user.getGame().getHost().equals(user)){
+            LOGGER.warn("{} is not the host of the game, {} is ", user.getName(), user.getGame().getHost().getName());
+            return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+        }
+        
+        if(user.getGame().getGameState() != GameEntity.GameState.INITIALIZED){
+            LOGGER.warn("{} attempted to set the number of robots for {}, but the game is already in {} ", 
+                    user.getName(), 
+                    user.getGame().getHost().getName(), 
+                    user.getGame().getGameState().name());
+            return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
+        }
+        
+        service.setNumberOfRobots(user.getGame(), number);
+        return new ResponseEntity<String>(HttpStatus.OK);
+    }
     
     @Override
     protected Logger logger() {

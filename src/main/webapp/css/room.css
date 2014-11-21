@@ -128,6 +128,20 @@ div.button:hover {
 	background-color: #66AAAA;
 }
 
+div#robotRow {
+    margin-top: 20px;
+    text-align: center;
+}
+
+div#robotRow div.button {
+    width: 50px;
+    margin-top: 0px;
+}
+
+div#robotRow div.button-selected {
+    background-color: #66AAAA;
+}
+
 #buttonRow {
 	display: flex;
 }
@@ -136,7 +150,7 @@ div.button:hover {
 	flex: 1;
 }
 #spaceDiv1 {
-	width: 350px;
+	width: 300px;
 }
 #start {
 	flex: 1;

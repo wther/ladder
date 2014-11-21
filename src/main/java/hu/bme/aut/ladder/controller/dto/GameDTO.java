@@ -24,7 +24,7 @@ public class GameDTO {
     /**
      * Players in the game
      */
-    private List<String> allPlayers;
+    private List<UserDTO> allPlayers;
     
     /**
      * Date the game was created
@@ -40,6 +40,11 @@ public class GameDTO {
      * Name of the user requesting this DTO
      */
     private String user;
+    
+    /**
+     * Number of robots in the game
+     */
+    private int numberOfRobots;
 
     public Long getGameId() {
         return gameId;
@@ -57,11 +62,11 @@ public class GameDTO {
         this.host = host;
     }
 
-    public List<String> getAllPlayers() {
+    public List<UserDTO> getAllPlayers() {
         return allPlayers;
     }
 
-    public void setAllPlayers(List<String> allPlayers) {
+    public void setAllPlayers(List<UserDTO> allPlayers) {
         this.allPlayers = allPlayers;
     }
 
@@ -87,5 +92,13 @@ public class GameDTO {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public int getNumberOfRobots() {
+        return numberOfRobots;
+    }
+
+    public void setNumberOfRobots(int numberOfRobots) {
+        this.numberOfRobots = numberOfRobots;
     }
 }

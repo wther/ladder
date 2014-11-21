@@ -5,6 +5,7 @@ import hu.bme.aut.ladder.controller.dto.GameDTO;
 import hu.bme.aut.ladder.controller.dto.PlayerDTO;
 import hu.bme.aut.ladder.controller.dto.StateChangeDTO;
 import hu.bme.aut.ladder.controller.dto.TunnelDTO;
+import hu.bme.aut.ladder.controller.dto.UserDTO;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
@@ -15,7 +16,6 @@ import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.UserService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -68,12 +68,18 @@ public abstract class BaseGameController {
         dto.setCreated(game.getCreated());
         dto.setHost(game.getHost().getName());
         dto.setUser(user.getName());
+        dto.setNumberOfRobots(game.getNumberOfRobots());
 
         boolean found = false;
 
-        List<String> players = new ArrayList<String>();
+        List<UserDTO> players = new ArrayList<UserDTO>();
         for(UserEntity gameUser : service.findUsersInGame(game)){
-            players.add(gameUser.getName());
+            UserDTO userDto = new UserDTO();
+            userDto.setName(gameUser.getName());
+            userDto.setReady(Boolean.TRUE.equals(gameUser.getReady()));
+            userDto.setUserId(gameUser.getUserId());
+            players.add(userDto);
+            
             if(gameUser.equals(user)){
                 found = true;
             }

@@ -96,11 +96,11 @@ public class PlayerEntity {
     
     public enum Color {
         RED, BLUE, GREEN, YELLOW
-    };
+    }
     
     public enum Type {
         HUMAN, ROBOT
-    };
+    }
 
     @Override
     public int hashCode() {
