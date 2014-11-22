@@ -12,6 +12,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,7 +36,11 @@ public class BoardServiceImpl implements BoardService {
     @Autowired
     private BoardRepository repository;
     
+    /**
+     * @TODO Enable setting game type
+     */
     @Autowired
+    @Qualifier("earthquakeBoardStrategyImpl")
     private BoardStrategy strategy;
 
     /**

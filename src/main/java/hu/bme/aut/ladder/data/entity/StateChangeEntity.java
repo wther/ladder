@@ -46,8 +46,16 @@ public class StateChangeEntity {
     @Column
     private int afterAt;
        
+    /**
+     * Player affected
+     */
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
     private PlayerEntity player;
+    
+    /**
+     * What caused this state change? E.g. ROLL, EARTHQUAKE, LADDER, SNAKE
+     */
+    private String causedBy;
 
     public Long getStateChangeId() {
         return stateChangeId;
@@ -89,8 +97,16 @@ public class StateChangeEntity {
         this.player = player;
     }
 
+    public String getCausedBy() {
+        return causedBy;
+    }
+
+    public void setCausedBy(String causedBy) {
+        this.causedBy = causedBy;
+    }
+
     @Override
     public String toString() {
-        return "StateChangeEntity{" + "stateChangeId=" + stateChangeId + ", sequenceNumber=" + sequenceNumber + ", beforeAt=" + beforeAt + ", afterAt=" + afterAt + ", player=" + player + '}';
+        return "StateChangeEntity{" + "sequenceNumber=" + sequenceNumber + ", beforeAt=" + beforeAt + ", afterAt=" + afterAt + ", player=" + player + ", causedBy=" + causedBy + '}';
     }
 }

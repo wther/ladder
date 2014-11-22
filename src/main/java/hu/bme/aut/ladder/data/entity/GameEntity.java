@@ -116,12 +116,6 @@ public class GameEntity {
         this.host = host;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        return hash;
-    }
-
     public int getNumberOfRobots() {
         return numberOfRobots;
     }

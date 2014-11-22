@@ -541,7 +541,7 @@ function processAnimations() {
 	
 	if(stateChange != null) {
 		//if this was a dice roll, then show the dice
-		if(lastPlayerAnimated == undefined || stateChange.playerColor != lastPlayerAnimated) {
+		if(lastPlayerAnimated == undefined || stateChange.playerColor != lastPlayerAnimated && stateChange.causedBy === 'ROLL') {
 			showDice(stateChange.to - stateChange.from);
 		}
 		//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
@@ -636,6 +636,19 @@ $('#roll_button').click(function(){
         	boardData = data;
         	rolled();
         	
+        }
+    });
+});
+
+$('#earthquake_button').click(function(){
+    $.ajax({
+        url: 'board/action',
+        data: {action: 'EARTHQUAKE'},
+        method: 'POST',
+        success: function(data){
+            //@TODO refactor
+            boardData = data;
+            safeProcessAnimations();
         }
     });
 });
