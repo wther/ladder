@@ -68,7 +68,12 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
-		</dependency>				
+		</dependency>
+	 <dependency>
+	  <groupId>commons-lang</groupId>
+	  <artifactId>commons-lang</artifactId>
+	  <version>2.6</version>
+	 </dependency>
 	</dependencies>
 	<build>
 		<finalName>ladder</finalName>

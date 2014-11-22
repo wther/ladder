@@ -4,17 +4,20 @@ import hu.bme.aut.ladder.BaseControllerTest;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.ROBOT;
+import hu.bme.aut.ladder.data.entity.UserEntity;
 import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,7 +99,7 @@ public class RoomControllerTest extends BaseControllerTest {
             .perform(put(LobbyController.JOIN_GAME_URI + "/" + games.get(0).getGameId()))
             .andExpect(status().is(HttpStatus.OK.value()));
         
-        // Attemp to start by a third person
+        // Attempt to start by a third person
         mockMvc.perform(post(RoomController.GAME_START_URI))
                 .andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
     }
@@ -135,6 +138,37 @@ public class RoomControllerTest extends BaseControllerTest {
         
         for(int i = 1; i < numberOfPlayers; i++){
             assertEquals("Player " + i + " should be a ROBOT", ROBOT, board.getPlayers().get(i).getType());
+        }
+    }
+    
+    /**
+     * Test that if the host leaves the room the rooms ends
+     * 
+     * @throws Exception 
+     */
+    @Test
+    public void thatIfHostLeavesTheRoomEnds() throws Exception {
+       
+        // Create game once
+        MockHttpSession hostSession = createNewGame();
+        
+        final List<GameEntity> games = gameRepository.findAll();
+        
+        // Join the game
+        MvcResult result = mockMvc
+            .perform(put(LobbyController.JOIN_GAME_URI + "/" + games.get(0).getGameId()))
+            .andExpect(status().is(HttpStatus.OK.value()))
+            .andReturn();
+        
+        // Let host leave the game
+         mockMvc.perform(delete(RoomController.LEAVE_GAME_URI).session(hostSession));
+         
+         // Assert
+        assertEquals("No games should exist", 0, gameRepository.findAll().size());
+        
+        // No user should have a game
+        for(UserEntity user : userRepository.findAll()){
+            assertNull(user.toString() + " shouldn't be associated with a game", user.getGame());
         }
     }
 }

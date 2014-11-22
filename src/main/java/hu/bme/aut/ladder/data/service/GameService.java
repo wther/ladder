@@ -60,16 +60,10 @@ public interface GameService {
     
     /**
      * Returns all games ordered by the name of the host
-     * @return 
-     */
-    List<GameEntity> findGames();
-    
-    /**
-     * Returns all games ordered by the name of the host
      * @param gameState
      * @return 
      */
-    List<GameEntity> findGamesByState(GameState gameState);
+    List<GameEntity> findActiveGamesByState(GameState gameState);
     
     /**
      * Returns all the users in a given game

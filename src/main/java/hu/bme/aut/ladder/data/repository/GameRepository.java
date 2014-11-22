@@ -16,6 +16,6 @@ public interface GameRepository extends JpaRepository<GameEntity, Long>{
     @Query("SELECT g FROM GameEntity g ORDER BY g.host.name")
     List<GameEntity> findAllOrderedByHostName();
     
-    @Query("SELECT g FROM GameEntity g WHERE g.gameState = :gameState ORDER BY g.host.name")
-    List<GameEntity> findByGameStateOrderedByHostName(@Param(value = "gameState") GameEntity.GameState gameState);
+    @Query("SELECT g FROM GameEntity g WHERE g.gameState = :gameState AND g.created > :after ORDER BY g.host.name")
+    List<GameEntity> findByGameStateOrderedByHostNameAfterDate(@Param(value = "gameState") GameEntity.GameState gameState, @Param(value = "after") java.util.Date after);
 }

@@ -69,7 +69,7 @@ public class LobbyController extends BaseGameController {
         LOGGER.info("List of games for the lobby requested by {}", user);
         
         // Started means no board yet
-        List<GameEntity> games = service.findGamesByState(GameEntity.GameState.INITIALIZED);
+        List<GameEntity> games = service.findActiveGamesByState(GameEntity.GameState.INITIALIZED);
                 
         List<GameDTO> retVal = new ArrayList<GameDTO>();
         for(GameEntity game : games){

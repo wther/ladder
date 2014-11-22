@@ -88,7 +88,7 @@ public class GameEntity {
         return created;
     }
 
-    public void setCreated(Timestamp created) {
+    public void setCreated(java.util.Date created) {
         this.created = created;
     }
 

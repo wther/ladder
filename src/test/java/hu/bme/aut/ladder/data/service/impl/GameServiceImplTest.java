@@ -2,10 +2,13 @@ package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.BaseIntegrationTest;
 import hu.bme.aut.ladder.data.entity.GameEntity;
+import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.ROBOT;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
+import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang.time.DateUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -102,13 +105,37 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         }
         
         // Act
-        List<GameEntity> games = target.findGames();
-        List<GameEntity> ongoingGames = target.findGamesByState(GameEntity.GameState.BOARD_STARTED);
+        List<GameEntity> games = target.findActiveGamesByState(GameEntity.GameState.INITIALIZED);
+        List<GameEntity> ongoingGames = target.findActiveGamesByState(GameEntity.GameState.BOARD_STARTED);
         
         // Assert
         assertEquals("AAA", games.get(0).getHost().getName());        
         assertEquals("CCC", games.get(games.size()-1).getHost().getName());        
         assertEquals("No games should be running", 0, ongoingGames.size());
+    }
+    
+    /**
+     * Test that games created more than an hour ago are deleted
+     * 
+     * @TODO check for actual deletion. The problem is that {@link UserEntity} may be referencing old games,
+     * so they can't actually be deleted with <i>DELETE</i>
+     */
+    @Test
+    public void thatGamesStartedLongAgoAreNotActive() throws GameActionNotAllowedException{
+        UserEntity user = new UserEntity();
+        user.setName("Test user");
+
+        userRepository.save(user);
+        GameEntity game = target.intializeGame(user);
+        
+        // Set back the date of this game with 2 hours
+        game.setCreated(DateUtils.addHours(game.getCreated(), -2));
+        
+        // Act
+        List<GameEntity> games = target.findActiveGamesByState(GameEntity.GameState.INITIALIZED);
+        
+        // Assert
+        assertEquals(0, games.size());
     }
     
     /**
@@ -140,5 +167,83 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         assertNotEquals("Players should have different colors", 
                 game.getBoard().getPlayers().get(0).getColor(),
                 game.getBoard().getPlayers().get(1).getColor());
+    }
+    
+    /**
+     * Test that if the host leaves the game it ends
+     */
+    @Test
+    public void thatIfHostLeavesTheGameEnds() throws GameActionNotAllowedException{
+        // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+        userRepository.save(user);
+        
+        GameEntity game = target.intializeGame(user);
+        game.setNumberOfRobots(1);
+        
+        // Act
+        target.leave(user);
+        
+        // Assert
+        assertNull("User shouldn't be in a game", user.getGame());
+        assertEquals("Game should've been deleted", 0, gameRepository.findAll().size());
+    }
+    
+    /**
+     * Test that if the host leaves the game it ends
+     */
+    @Test
+    public void thatIfHostLeavesRunningGameHeIsReplacedByRobot() throws GameActionNotAllowedException{
+        // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+                
+        UserEntity otherUser = new UserEntity();
+        otherUser.setName("Other user");
+        userRepository.save(Arrays.asList(user, otherUser));
+        
+        GameEntity game = target.intializeGame(user);
+        
+        // Other user joins
+        target.join(game.getGameId(), otherUser);
+        
+        // Start
+        target.startGame(game);
+        
+        // Act
+        target.leave(user);
+        
+        // Assert
+        assertNull("User shouldn't be in a game", user.getGame());
+        assertEquals("Game shouldn't have been deleted", 1, gameRepository.findAll().size());
+        assertEquals("User should be replaced with robot", ROBOT, gameRepository.findAll().get(0).getBoard().getPlayers().get(0).getType());
+    }
+    
+    /**
+     * Test that if I leave a game and there are only robot players remaining 
+     * it ends.
+     * 
+     * @throws GameActionNotAllowedException 
+     */
+    @Test
+    public void thatGameIsDeletedIfNoHumanPlayerIsLeft() throws GameActionNotAllowedException{
+         // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+        userRepository.save(user);
+        
+        GameEntity game = target.intializeGame(user);
+        game.setNumberOfRobots(1);
+        
+        // Start the game
+        target.startGame(game);
+        
+        // Act
+        target.leave(user);
+        
+         // Assert
+        assertNull("User shouldn't be in a game", user.getGame());
+        assertEquals("Game should've been deleted", 0, gameRepository.findAll().size());
     }
 }
