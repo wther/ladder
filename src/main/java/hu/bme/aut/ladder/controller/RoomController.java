@@ -71,11 +71,13 @@ public class RoomController extends BaseGameController {
      * @param request
      */
     @RequestMapping(value = LEAVE_GAME_URI, method = RequestMethod.DELETE)
-    public void leave(HttpServletRequest request) {
+    public @ResponseBody ResponseEntity<String> leave(HttpServletRequest request) {
         
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         LOGGER.info("{} is leaving {}", user, user.getGame());
         service.leave(user);
+        
+        return new ResponseEntity<String>(HttpStatus.OK);
     } 
     
     

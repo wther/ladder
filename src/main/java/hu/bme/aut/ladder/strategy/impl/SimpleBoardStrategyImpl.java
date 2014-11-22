@@ -47,10 +47,11 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
             board.setNextPlayer(player);
             
         // Otherwise verify that it is indeed player's turn
-        } else if(!player.equals(board.getNextPlayer())){
+        // @TODO why only ID comparision works?
+        } else if(!player.getPlayerId().equals(board.getNextPlayer().getPlayerId())){
             throw new BoardActionNotPermitted(
-                    "Expected " + board.getNextPlayer().getName() + 
-                    " to take a turn but was attempted by " + player.getName());
+                    "Expected " + board.getNextPlayer().toString()+ 
+                    " to take a turn but was attempted by " + player.toString());
         }
         
         // Only rolling is allowed in the simple version

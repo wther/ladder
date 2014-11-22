@@ -88,4 +88,9 @@ public class StateChangeEntity {
     public void setPlayer(PlayerEntity player) {
         this.player = player;
     }
+
+    @Override
+    public String toString() {
+        return "StateChangeEntity{" + "stateChangeId=" + stateChangeId + ", sequenceNumber=" + sequenceNumber + ", beforeAt=" + beforeAt + ", afterAt=" + afterAt + ", player=" + player + '}';
+    }
 }

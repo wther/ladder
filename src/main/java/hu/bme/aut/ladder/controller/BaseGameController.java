@@ -120,7 +120,7 @@ public abstract class BaseGameController {
             playerDTO.setColor(player.getColor().name());
             playerDTO.setPosition(player.getPosition());
             playerDTO.setName(player.getName());
-            playerDTO.setIsMe(player.equals(user.getPlayer()));
+            playerDTO.setIsMe(player.getPlayerId().equals(user.getPlayer().getPlayerId()));
             playerDTOList.add(playerDTO);
         }
         dto.setPlayers(playerDTOList);

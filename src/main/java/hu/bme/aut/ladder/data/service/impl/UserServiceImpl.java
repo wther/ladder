@@ -1,5 +1,6 @@
 package hu.bme.aut.ladder.data.service.impl;
 
+import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.UserService;
@@ -69,5 +70,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserEntity> findAll() {
         return userRepository.findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getUserPage(UserEntity user) {
+        
+        if(user.getGame() == null){
+            return LOBBY_PAGE;
+        } else if(user.getGame().getGameState() == GameEntity.GameState.INITIALIZED){
+            return ROOM_PAGE;
+        } else {
+            return GAME_PAGE;
+        }        
     }
 }
