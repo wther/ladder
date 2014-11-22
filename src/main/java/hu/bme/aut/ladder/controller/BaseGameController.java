@@ -141,6 +141,7 @@ public abstract class BaseGameController {
             stateChangeDTO.setTo(stateChange.getAfterAt());
             stateChangeDTO.setSequenceNumber(stateChange.getSequenceNumber());
             stateChangeDTO.setPlayerColor(stateChange.getPlayer().getColor().name());
+            stateChangeDTO.setCausedBy(stateChange.getCausedBy());
             stateChangeDTOList.add(stateChangeDTO);
         }
         dto.setStateChanges(stateChangeDTOList);

@@ -28,6 +28,11 @@ public class StateChangeDTO {
      * Player who done this
      */
     private String playerColor;
+    
+    /**
+     * What caused this? E.g. ROLL, EARTHQUAKE, LADDER, SNAKE
+     */
+    private String causedBy;
 
     public int getFrom() {
         return from;
@@ -60,4 +65,12 @@ public class StateChangeDTO {
     public void setPlayerColor(String playerColor) {
         this.playerColor = playerColor;
     }    
+
+    public String getCausedBy() {
+        return causedBy;
+    }
+
+    public void setCausedBy(String causedBy) {
+        this.causedBy = causedBy;
+    }
 }

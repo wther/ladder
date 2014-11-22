@@ -2,21 +2,15 @@ package hu.bme.aut.ladder.strategy.impl;
 
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
-import hu.bme.aut.ladder.data.entity.StateChangeEntity;
 import hu.bme.aut.ladder.data.entity.TunnelEntity;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.LADDER;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.SNAKE;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
-import hu.bme.aut.ladder.strategy.Dice;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
@@ -25,7 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
  * @author Barnabas
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SimpleBoardStrategyImplTest {
+public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
     
     /**
      * Target being tested
@@ -269,43 +263,5 @@ public class SimpleBoardStrategyImplTest {
                 
         // Act
         target.executeAction(board, board.getPlayers().get(0), "ROLL");
-    }
-    
-    /**
-     * Creates a simple board
-     * 
-     * @param numberOfPlayers
-     * @return 
-     */
-    private static BoardEntity mockBoard(int numberOfPlayers){
-        BoardEntity board = new BoardEntity();
-        board.setBoardId(new Long(1));
-        board.setBoardSize(100);
-        board.setStateChanges(new ArrayList<StateChangeEntity>());
-        board.setTunnels(new ArrayList<TunnelEntity>());
-        
-        List<PlayerEntity> players = new ArrayList<>();
-        for(int i = 0; i < numberOfPlayers; i++){
-            PlayerEntity player = new PlayerEntity();
-            player.setPlayerId(new Long(i));
-            player.setPosition(0);
-            player.setType(PlayerEntity.Type.HUMAN);
-            players.add(player);
-        }
-        
-        board.setPlayers(players);
-        return board;
-    }
-
-    
-    /**
-     * Returns a dice which always rolls five
-     * @return 
-     */
-    private static Dice diceWhichRollsTheSame(int diceRolled){
-        // Mock a dice to always throw 5
-        Dice dice = mock(Dice.class);
-        when(dice.getNext()).thenReturn(diceRolled);
-        return dice;
     }
 }

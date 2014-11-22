@@ -90,6 +90,25 @@ public class BoardControllerTest extends BaseControllerTest {
     }
     
     /**
+     * Tests that players can each make a move
+     */
+    @Test
+    public void thatPlayerCanCauseEarthquake() throws Exception {
+        
+        // Arrange
+        List<MockHttpSession> sessions = startGame();
+        
+        // Act
+        mockMvc
+            .perform(post(BoardController.BOARD_ACTION_URI)
+                    .session(sessions.get(0))
+                    .param("action", "EARTHQUAKE"))
+            .andExpect(jsonPath("$.stateChanges", not(hasSize(0))))
+            .andExpect(jsonPath("$.stateChanges[0].causedBy", is("EARTHQUAKE")))
+            .andExpect(status().is(HttpStatus.OK.value()));
+    }
+    
+    /**
      * Tests that the player who finishes first is the winner
      */
     @Test
