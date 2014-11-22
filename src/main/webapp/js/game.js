@@ -451,7 +451,6 @@ var fieldClicked = false;
 function clickFieldBlocking(stateChange) {
 	clickBlocking = true;
 	var rollValue = stateChange.to - stateChange.from;
-	//showDice(rollValue);
 	
 	playerMustClickHere = stateChange.to;
 	animateFieldToBeClicked(playerMustClickHere);
@@ -573,6 +572,9 @@ function processAnimations() {
 			
 			if(rollMove) {
 				showDice(stateChange.to - stateChange.from);
+				if(!animateFieldClicked) {
+					document.getElementById("sound_diceroll").play();
+				}
 			}
 			//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
 			if(playerMe().color === stateChange.playerColor && justRolled) {
@@ -587,7 +589,7 @@ function processAnimations() {
 		}
 		//earthquake - if there are more than one stateChanges with the same sequenceNumber
 		else {
-			animateStateChanges(stateChanges, boardData);
+			animateStateChangesSimultaneously(stateChanges, boardData);
 			processedUntilSequenceNumber = stateChanges[0].sequenceNumber;
 		}
 		
@@ -623,9 +625,22 @@ function animateStateChangesSequentially(stateChanges, board, finishFunc) {
 	animateStateChangeVoid();
 }
 
+var winner = null;
+var lastStateChange = null;
+function postAnimationProcess() {
+	if (lastStateChange.to === boardData.size - 1 && winner == null) {
+		winner = stateChange.playerColor;
+		if(playerMe().color === winner) {
+			document.getElementById("sound_finish").play();
+		}
+	}
+	processAnimations();
+}
+
 //rollMove indicates if the move is not a ladder/snake movement and so
 // if passes on a corner it needs to be sequenced
-function animateStateChange(stateChange, board, rollMove, finishFunc) {	
+function animateStateChange(stateChange, board, rollMove, finishFunc) {
+	lastStateChange = stateChange;
 	var playerToAnimate;
 	
 	playerToAnimate = playerTokens[stateChange.playerColor];
