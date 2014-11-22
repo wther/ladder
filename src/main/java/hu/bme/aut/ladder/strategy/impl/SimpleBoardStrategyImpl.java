@@ -165,6 +165,13 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
             }
         }
         
+        // If there is a snake at the end the board is not solvable
+        for(TunnelEntity tunnel : board.getTunnels()){
+            if(tunnel.getType() == TunnelEntity.Type.SNAKE && tunnel.getFromField() == size-1){
+                return false;
+            }
+        }
+        
         // From any field if there is no ladder the next 1..DICE_LIMIT is reachable
         for(int i = 0; i < size; i++){
             TunnelEntity tunnel = getTunnelFrom(board.getTunnels(), i);

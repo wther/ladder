@@ -103,7 +103,29 @@ public class SimpleBoardStrategySolvableTest {
         
         // Assert
         assertEquals("Board should not be solvable", false, result);
+    }
+    
+    
+    /**
+     * Test that board with a snake at the end (100) is not solvable
+     */
+    @Test
+    public void thatABoardWithSnakeOnTheFinalFieldIsNotSolvable(){
         
+        BoardEntity board = prepareTestBoard();
+        
+        TunnelEntity snake = new TunnelEntity();
+        snake.setFromField(board.getBoardSize() - 1);
+        snake.setToField(5);
+        snake.setType(TunnelEntity.Type.SNAKE);
+        
+        board.setTunnels(Arrays.asList(snake));
+        
+        // Act
+        boolean result = target.isBoardAlwaysSolvable(board);
+        
+        // Assert
+        assertEquals("Board should not be solvable", false, result);
     }
     
     /**
