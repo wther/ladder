@@ -1,12 +1,13 @@
 package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.BaseIntegrationTest;
+import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
-import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.UserService;
-import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -60,5 +61,50 @@ public class UserServiceImplTest extends BaseIntegrationTest {
         
         // Assert
         assertEquals(userName, result.getName());
+    }
+    
+    /**
+     * Playing this scenario:
+     * <ul>
+     *  <li>User arrives on the page</li>
+     *  <li>User joins a game</li>
+     *  <li>That game starts</li>
+     * </ul>
+     * 
+     * Verify that the user is redirected to the right page 
+     * all the time
+     */
+    @Test
+    public void thatUserIsRedirectedToTheRightPage(){
+                
+        // Arrange
+        final String sessionId = "DEF456";
+        final String userName = "Johnny";
+        
+        UserEntity entity = new UserEntity();
+        entity.setName(userName);
+        entity.setSessionId(sessionId);
+        
+        userRepository.save(entity);
+        
+        // Arriving for the first time
+        assertEquals(UserService.LOBBY_PAGE, target.getUserPage(entity));
+        
+        // Joining a room
+        GameEntity game = mock(GameEntity.class); 
+        when(game.getGameState()).thenReturn(GameEntity.GameState.INITIALIZED);
+        
+        entity.setGame(game);
+        
+        // In the game
+        assertEquals(UserService.ROOM_PAGE, target.getUserPage(entity));
+        
+        // Let that game start
+        when(game.getGameState()).thenReturn(GameEntity.GameState.BOARD_STARTED);
+        assertEquals(UserService.GAME_PAGE, target.getUserPage(entity));
+        
+        // And finish the game
+        when(game.getGameState()).thenReturn(GameEntity.GameState.FINISHED);
+        assertEquals(UserService.GAME_PAGE, target.getUserPage(entity));
     }
 }
