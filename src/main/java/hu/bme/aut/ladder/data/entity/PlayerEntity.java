@@ -53,6 +53,18 @@ public class PlayerEntity {
      */
     @Column
     private String name;
+    
+    /**
+     * Value indicating that user is done playing the game, reached the last field on the board
+     */
+    @Column
+    private boolean finishedPlaying = false;
+    
+    /**
+     * Place at which this player finished
+     */
+    @Column
+    private int finishedAtPlace = 0;
 
     public Long getPlayerId() {
         return playerId;
@@ -92,6 +104,22 @@ public class PlayerEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isFinishedPlaying() {
+        return finishedPlaying;
+    }
+
+    public void setFinishedPlaying(boolean finishedPlaying) {
+        this.finishedPlaying = finishedPlaying;
+    }
+
+    public int getFinishedAtPlace() {
+        return finishedAtPlace;
+    }
+
+    public void setFinishedAtPlace(int finishedAtPlace) {
+        this.finishedAtPlace = finishedAtPlace;
     }
     
     public enum Color {
