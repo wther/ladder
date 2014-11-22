@@ -4,6 +4,7 @@ import hu.bme.aut.ladder.data.builder.BoardBuilder;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
+import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.HUMAN;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.repository.GameRepository;
 import hu.bme.aut.ladder.data.repository.UserRepository;
@@ -14,6 +15,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -143,14 +145,6 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public List<GameEntity> findGames() {
-        return repository.findAllOrderedByHostName();
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public GameEntity findGameById(Long id){
         return repository.findOne(id);
     }
@@ -159,8 +153,10 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public List<GameEntity> findGamesByState(GameEntity.GameState gameState) {
-        return repository.findByGameStateOrderedByHostName(gameState);
+    public List<GameEntity> findActiveGamesByState(GameEntity.GameState gameState) {
+                
+        // Returns subset of all games
+        return repository.findByGameStateOrderedByHostNameAfterDate(gameState, DateUtils.addHours(new Date(), -1));
     }
 
     /**
@@ -191,8 +187,58 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public void leave(UserEntity user) {
-        user.setGame(null);
-        userRepository.save(user);
+        
+        if(user.getGame() == null){
+            // Do nothing
+            return;
+        }
+        
+        // If game hasn't started yet
+        if(user.getGame().getGameState() == GameEntity.GameState.INITIALIZED){
+            
+            final GameEntity game = user.getGame();
+            
+            // Kick off every player if I'm the host
+            if(game.getHost().equals(user)){
+                for(UserEntity item : userRepository.findByGame(game)){
+                    item.setGame(null);
+                    userRepository.save(item);
+                }            
+                
+                // And delete game entirely
+                repository.delete(game);
+                
+            } else {
+                user.setGame(null);
+                userRepository.save(user);
+            }
+            
+        } else if(user.getGame().getGameState() == GameEntity.GameState.BOARD_STARTED){
+            
+            final GameEntity game = user.getGame();
+            
+            // Replace user with robot
+            user.getPlayer().setType(PlayerEntity.Type.ROBOT);
+            
+            // Detach user from game
+            user.setPlayer(null);
+            user.setGame(null);
+            userRepository.save(user);
+            
+            // Are there any human players in the game?
+            boolean foundHuman = false;
+            for(PlayerEntity player : game.getBoard().getPlayers()){
+                if(player.getType().equals(HUMAN)){
+                    foundHuman = true;
+                    break;
+                }
+            }
+            
+            // If no more humans left, then delete this game
+            if(!foundHuman){
+                repository.delete(game);
+            }
+        }
     }
 
     /**
