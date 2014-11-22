@@ -220,6 +220,58 @@ public class SimpleBoardStrategyImplTest {
     }
     
     /**
+     * Test that when a player reaches the last (size-1) field they are considered
+     * finished.
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatPlayerIsFinishedOnceReachesLastField() throws BoardActionNotPermitted {
+        
+         // Arrange
+        BoardEntity board = mockBoard(1);
+        final int diceRolled = 5;
+        target.setDice(diceWhichRollsTheSame(diceRolled));
+        
+        // Set player's position
+        int playerStartsFrom = board.getBoardSize() - diceRolled;
+        board.getPlayers().get(0).setPosition(playerStartsFrom);
+                
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+     
+        // Assert
+        final PlayerEntity player = board.getPlayers().get(0);
+        
+        assertEquals("Player should be at the last position", board.getBoardSize() - 1, player.getPosition());
+        assertEquals("This player should have finished", true, player.isFinishedPlaying());
+        assertEquals("This player should be the winner", 1, player.getFinishedAtPlace());
+    }
+    
+    /**
+     * Test that when a player has finished playing, they can't roll any more
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test(expected = BoardActionNotPermitted.class)
+    public void thatPlayerWhoFinishedCantRoll() throws BoardActionNotPermitted {
+        
+         // Arrange
+        BoardEntity board = mockBoard(1);
+        final int diceRolled = 5;
+        target.setDice(diceWhichRollsTheSame(diceRolled));
+        
+        // Set player's position and that he has finished playing
+        int playerStartsFrom = board.getBoardSize() - diceRolled;
+        board.getPlayers().get(0).setPosition(playerStartsFrom);
+        board.getPlayers().get(0).setFinishedPlaying(true);
+        board.getPlayers().get(0).setFinishedAtPlace(1);
+                
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+    }
+    
+    /**
      * Creates a simple board
      * 
      * @param numberOfPlayers

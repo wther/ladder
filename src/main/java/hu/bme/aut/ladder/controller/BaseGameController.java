@@ -121,7 +121,15 @@ public abstract class BaseGameController {
             playerDTO.setPosition(player.getPosition());
             playerDTO.setName(player.getName());
             playerDTO.setIsMe(player.getPlayerId().equals(user.getPlayer().getPlayerId()));
+            playerDTO.setIsFinished(player.isFinishedPlaying());
+            playerDTO.setFinishedAtPlace(player.getFinishedAtPlace());
+            playerDTO.setType(player.getType().name());
             playerDTOList.add(playerDTO);
+            
+            // Is this the next player (if there is any)
+            if(board.getNextPlayer() != null && player.getPlayerId().equals(board.getNextPlayer().getPlayerId())){
+                dto.setNextPlayer(playerDTO);
+            }            
         }
         dto.setPlayers(playerDTOList);
         

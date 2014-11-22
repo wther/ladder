@@ -102,9 +102,5 @@ public class UserServiceImplTest extends BaseIntegrationTest {
         // Let that game start
         when(game.getGameState()).thenReturn(GameEntity.GameState.BOARD_STARTED);
         assertEquals(UserService.GAME_PAGE, target.getUserPage(entity));
-        
-        // And finish the game
-        when(game.getGameState()).thenReturn(GameEntity.GameState.FINISHED);
-        assertEquals(UserService.GAME_PAGE, target.getUserPage(entity));
     }
 }

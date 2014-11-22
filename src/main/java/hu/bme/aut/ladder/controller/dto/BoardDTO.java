@@ -28,6 +28,11 @@ public class BoardDTO {
     private List<PlayerDTO> players;
     
     /**
+     * Next player who should take an action
+     */
+    private PlayerDTO nextPlayer;
+    
+    /**
      * State changes
      */
     private List<StateChangeDTO> stateChanges;
@@ -70,5 +75,13 @@ public class BoardDTO {
 
     public void setStateChanges(List<StateChangeDTO> stateChanges) {
         this.stateChanges = stateChanges;
+    }
+
+    public PlayerDTO getNextPlayer() {
+        return nextPlayer;
+    }
+
+    public void setNextPlayer(PlayerDTO nextPlayer) {
+        this.nextPlayer = nextPlayer;
     }
 }

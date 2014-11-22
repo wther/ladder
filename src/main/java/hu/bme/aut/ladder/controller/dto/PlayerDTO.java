@@ -31,6 +31,16 @@ public class PlayerDTO {
      * Can be either <i>HUMAN</i> or <i>ROBOT</i>
      */
     private String type;
+    
+    /**
+     * Value indicating that this player has finished playing
+     */
+    private boolean isFinished;
+    
+    /**
+     * Value indicating the place (1st, 2nd, etc.) this player finished on if {@link #isFinished} is <i>true</i>
+     */
+    private int finishedAtPlace;
 
     public int getPosition() {
         return position;
@@ -71,4 +81,20 @@ public class PlayerDTO {
     public void setType(String type) {
         this.type = type;
     }   
+
+    public boolean isIsFinished() {
+        return isFinished;
+    }
+
+    public void setIsFinished(boolean isFinished) {
+        this.isFinished = isFinished;
+    }
+
+    public int getFinishedAtPlace() {
+        return finishedAtPlace;
+    }
+
+    public void setFinishedAtPlace(int finishedAtPlace) {
+        this.finishedAtPlace = finishedAtPlace;
+    }
 }
