@@ -108,21 +108,32 @@ function getTokenDim(position, i, boardSize) {
 	};
 }
 
+function fieldToVectorPos(field, boardSize) {
+	var width = parseInt(Math.sqrt(boardSize));
+    if(width*width !== boardSize){
+        throw "Unexpected board size: " + boardSize;
+    }
+    
+    var y = width - 1 - Math.floor(field / width);
+    
+    // Follow a spiral root
+    var x = (y % 2 === 1) ? field  % width : (width - 1 - field % width);
+    return {
+    	X: x,
+    	Y: y,
+    	W: width
+    };
+}
+
 /**
  * Returns to pixel coordinates for field x;y given the size and ratio of the
  * canvas
  */
 function fieldToPixels(field, boardSize, pixelSize, padding) {
-    
-        var width = parseInt(Math.sqrt(boardSize));
-        if(width*width !== boardSize){
-            throw "Unexpected board size: " + boardSize;
-        }
-        
-        var y = width - 1 - Math.floor(field / width);
-        
-        // Follow a spiral root
-        var x = (y % 2 === 1) ? field  % width : (width - 1 - field % width);
+    var Pos = fieldToVectorPos(field, boardSize);
+    var x = Pos.X;
+    var y = Pos.Y;
+    var width = Pos.W;
 
 	// Default argument values
 	if (pixelSize === undefined) {
@@ -417,11 +428,14 @@ function showDice(rollValue) {
 }
 
 var rollAnim;
+
+var justRolled = false;
 //dice is rolled, player has to click on correspondent field to advance
 function rolled() {
 
 	$("#roll_button").attr("disabled", "disabled");
-	var stateChange = getNextStateChange();
+	justRolled = true;
+	var stateChange = getNextStateChanges()[0];
 	if(playerMe().color === stateChange.playerColor) {
 		safeProcessAnimations();
 	}
@@ -509,16 +523,27 @@ var processedUntilSequenceNumber = 0;
 var currentArrayIndex = 0;
 
 
-function getNextStateChange() {
+function getNextStateChanges() {
+	var stateChanges = [];
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
 		var stateChange = boardData.stateChanges[j];
 		if(stateChange.sequenceNumber > processedUntilSequenceNumber) {
-			return stateChange;
+			stateChanges.push(stateChange);
+			for(var i = j+1; i < boardData.stateChanges.length; i++) {
+				var otherStateChange = boardData.stateChanges[i];
+				if(otherStateChange.sequenceNumber == stateChange.sequenceNumber) {
+					stateChanges.push(otherStateChange);
+				}
+				else if(otherStateChange.sequenceNumber > stateChange.sequenceNumber) {
+					break;
+				}
+			}
+			
+			return stateChanges;
 		}
 	}
 	return null;
 }
-
 // if last player animated is the same as current to be animated player, 
 //it is climbing/sliding on a ladder/snake, so no need for a click (clickFieldBlocking)
 var lastPlayerAnimated;
@@ -537,26 +562,42 @@ function processAnimations() {
 	processing = true;
 	
 	//we animate one animation, and it's onfinish will call this function back
-	var stateChange = getNextStateChange();
+	var stateChanges = getNextStateChanges();
 	
-	if(stateChange != null) {
-		//if this was a dice roll, then show the dice
-		if(lastPlayerAnimated == undefined || stateChange.playerColor != lastPlayerAnimated) {
-			showDice(stateChange.to - stateChange.from);
+	if(stateChanges != null) {
+		if(stateChanges.length == 1) {
+			var stateChange = stateChanges[0];
+			//if this was a dice roll, then show the dice
+			var rollMove = lastPlayerAnimated == undefined || stateChange.playerColor != lastPlayerAnimated;
+			
+			if(rollMove) {
+				showDice(stateChange.to - stateChange.from);
+			}
+			//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
+			if(playerMe().color === stateChange.playerColor && justRolled) {
+				justRolled = false;
+				showDice(stateChange.to - stateChange.from);
+				clickFieldBlocking(stateChange);
+			}
+//			if(playerMe().color === stateChange.playerColor && !animateFieldClicked && stateChange.playerColor != lastPlayerAnimated) {
+//				clickFieldBlocking(stateChange);
+//			}
+			else {
+				lastPlayerAnimated = stateChange.playerColor;
+				animateStateChange(stateChange, boardData, rollMove, processAnimations);
+				processedUntilSequenceNumber = stateChange.sequenceNumber;
+			}
 		}
-		//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
-		if(playerMe().color === stateChange.playerColor && !animateFieldClicked && stateChange.playerColor != lastPlayerAnimated) {
-			clickFieldBlocking(stateChange);
-		}
+		//earthquake - if there are more than one stateChanges with the same sequenceNumber
 		else {
-			lastPlayerAnimated = stateChange.playerColor;
-			animateStateChange(stateChange, boardData);
-			processedUntilSequenceNumber = stateChange.sequenceNumber;
+			animateStateChanges(stateChanges, boardData);
+			processedUntilSequenceNumber = stateChanges[0].sequenceNumber;
 		}
+		
 	}
 	else {
 		processing = false;
-		if(lastPlayerAnimated == undefined || lastPlayerAnimated != playerMe().color) {
+		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
 			$("#roll_button").removeAttr("disabled");
 		}
 		
@@ -564,9 +605,30 @@ function processAnimations() {
 	
 }
 
+//this part is for getting around corners nicely
+var tStateChanges;
+var tboard;
+var trollMove;
+var tfinishFunc;
+function animateStateChangeVoid() {
+	var stateChange = tStateChanges.shift();
+	var finishFunc = (tStateChanges.length == 0) ? tfinishFunc : animateStateChangeVoid;
+	
+	animateStateChange(stateChange, tboard, trollMove, finishFunc);
+}
 
+//for corner animations
+function animateStateChangesSequentially(stateChanges, board, finishFunc) {
+	tStateChanges = stateChanges;
+	tboard = board;
+	tfinishFunc = finishFunc;
+	trollMove = false;
+	animateStateChangeVoid();
+}
 
-function animateStateChange(stateChange, board) {
+//rollMove indicates if the move is not a ladder/snake movement and so
+// if passes on a corner it needs to be sequenced
+function animateStateChange(stateChange, board, rollMove, finishFunc) {	
 	var playerToAnimate;
 	
 	playerToAnimate = playerTokens[stateChange.playerColor];
@@ -574,6 +636,43 @@ function animateStateChange(stateChange, board) {
 	if( playerToAnimate === undefined) {
 		throw "bad argument in animateStateChange";
 	}
+	
+	if(rollMove) {
+		var Pos1 = fieldToVectorPos(stateChange.from, board.size);
+		var Pos2 = fieldToVectorPos(stateChange.to, board.size);
+		//passing a corner
+		if(Pos1.Y != Pos2.Y) {
+			var stateChanges = [];
+			var cornerField1 = stateChange.from + (9 - (stateChange.from % 10));
+			var cornerField2 = cornerField1 + 1;
+			if(stateChange.from != cornerField1) {
+				stateChanges.push({
+					from: stateChange.from,
+					to: cornerField1,
+					sequenceNumber: stateChange.sequenceNumber,
+					playerColor: stateChange.playerColor
+				});
+			}
+			stateChanges.push({
+				from: cornerField1,
+				to: cornerField2,
+				sequenceNumber: stateChange.sequenceNumber,
+				playerColor: stateChange.playerColor
+			});
+			if(cornerField2 != stateChange.to) {
+				stateChanges.push({
+					from: cornerField2,
+					to: stateChange.to,
+					sequenceNumber: stateChange.sequenceNumber,
+					playerColor: stateChange.playerColor
+				});
+			}
+			animateStateChangesSequentially(stateChanges, board, finishFunc);
+			return;
+		}
+		//otherwise just animate it regularly
+	}
+	
 	
 	var fromDim = getTokenDim(stateChange.from, playerToAnimate.i, board.size);
 	var toDim = getTokenDim(stateChange.to, playerToAnimate.i, board.size);
@@ -592,12 +691,55 @@ function animateStateChange(stateChange, board) {
 		  y: toDim.Y,
 		  duration: 1 + dist / 10.0,
 		  easing: Kinetic.Easings.BounceEaseOut,
-		  onFinish: processAnimations
+		  onFinish: finishFunc
 	});
 	
 	tween.play();
 	
 	
+}
+
+//for earthquake
+function animateStateChangesSimultaneously(stateChanges, board) {
+	var maxCount = stateChanges.length;
+	var count = 0;
+	for(var i = 0; i < stateChanges.length; i++) {
+		var stateChange = stateChanges[i];
+		var playerToAnimate;
+		
+		playerToAnimate = playerTokens[stateChange.playerColor];
+		
+		if( playerToAnimate === undefined) {
+			throw "bad argument in animateStateChanges";
+		}
+		
+		var fromDim = getTokenDim(stateChange.from, playerToAnimate.i, board.size);
+		var toDim = getTokenDim(stateChange.to, playerToAnimate.i, board.size);
+		
+		playerToAnimate.attrs.x = fromDim.X;
+		playerToAnimate.attrs.y = fromDim.Y;
+		playerToAnimate.show();
+		
+		var dist = getDistance(fromDim.X, fromDim.Y, toDim.X, toDim.Y);
+		dist /= SIZE/10;
+		console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
+		
+		var tween = new Kinetic.Tween({
+			  node: playerToAnimate,
+			  x: toDim.X,
+			  y: toDim.Y,
+			  duration: 1 + dist / 10.0,
+			  easing: Kinetic.Easings.BounceEaseOut,
+			  onFinish: function() {
+				  count++;
+				  if(count == maxCount) {
+					  processAnimations();
+				  }
+			  }
+		});
+		
+		tween.play();
+	}
 }
 
 //refreshes the board data but does not redraw it
