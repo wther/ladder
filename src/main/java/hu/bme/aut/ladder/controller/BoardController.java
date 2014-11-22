@@ -30,7 +30,7 @@ public class BoardController extends BaseGameController {
     /**
      * Class logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(LobbyController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class);
 
     /**
      * URI for accessing details on the board
@@ -58,7 +58,7 @@ public class BoardController extends BaseGameController {
             return new ResponseEntity<BoardDTO>(HttpStatus.BAD_REQUEST);
         }
 
-        LOGGER.info("Sending DTO for board: {}", user.getGame().getBoard());
+        LOGGER.debug("Sending DTO for board: {}", user.getGame().getBoard());
         
         return new ResponseEntity<BoardDTO>(dtoFromBoard(user.getGame().getBoard(), user), HttpStatus.OK);
     }
@@ -87,7 +87,7 @@ public class BoardController extends BaseGameController {
 
     private UserEntity findAndVerifyUserEntity(HttpServletRequest request) {
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
-        LOGGER.info("Board details requested by: {}", user);
+        LOGGER.debug("Board details requested by: {} with player: {}", user, user.getPlayer());
 
         // Make sure user is in a game
         if (user.getGame() == null) {
