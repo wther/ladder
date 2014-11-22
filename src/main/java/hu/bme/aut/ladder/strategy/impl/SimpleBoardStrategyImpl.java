@@ -31,7 +31,6 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
      */
     private Dice dice = new SimpleDiceImpl();
     
-    
     /**
      * {@inheritDoc}
      */
@@ -57,6 +56,11 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
         // Only rolling is allowed in the simple version
         if(!"ROLL".equalsIgnoreCase(action)){
             throw new BoardActionNotPermitted("Only ROLL is permitted by " + this.getClass().getSimpleName());
+        }
+        
+        // If player has already finished playing then this is not allowed
+        if(player.isFinishedPlaying()){
+            throw new BoardActionNotPermitted("Player has already finished playing: " + player.getName());
         }
         
         // Move the next player and any number of robot players
@@ -89,8 +93,30 @@ public class SimpleBoardStrategyImpl implements BoardStrategy {
             }
         }
         
-        // Set next player to (i+1) mod NumberOfPlayers
-        board.setNextPlayer(board.getPlayers().get((i+1) % board.getPlayers().size()));
+        // Did this player finish?
+        if(player.getPosition() >= board.getBoardSize()-1){
+            player.setFinishedPlaying(true);
+            
+            // How many others have finished already (including me!)
+            int count = 0;
+            for(PlayerEntity playersInGame : board.getPlayers()){
+                if(playersInGame.isFinishedPlaying()){
+                    ++count;
+                }
+            }
+            
+            player.setFinishedAtPlace(count);            
+        }
+        
+        // Set next player to (i+1) mod NumberOfPlayers, but skip as long
+        // as the given player has already finished playing!
+        for(int j = 1; j < board.getPlayers().size(); j++){
+            final PlayerEntity nextPlayer = board.getPlayers().get((i+j) % board.getPlayers().size());
+            if(!nextPlayer.isFinishedPlaying()){
+                board.setNextPlayer(nextPlayer);
+                break;
+            }
+        }
     }
     
     /**

@@ -73,7 +73,7 @@ public class GameEntity {
      * State of the game
      */
     public static enum GameState {
-        INITIALIZED, BOARD_STARTED, FINISHED
+        INITIALIZED, BOARD_STARTED
     }
 
     public Long getGameId() {
