@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.data.builder.BoardBuilder;
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
@@ -12,6 +13,7 @@ import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
@@ -132,6 +134,19 @@ public class GameServiceImpl implements GameService {
             player.setType(PlayerEntity.Type.ROBOT);
             player.setName("Robot");
             board.getPlayers().add(player);
+        }
+        
+        // Add abilities to players
+        for(PlayerEntity player : board.getPlayers()){
+            List<AbilityEntity> abilities = new ArrayList<AbilityEntity>();
+            for(AbilityEntity ability : boardStrategy.getInitialAbilityKit()){
+                // Clone the ability
+                AbilityEntity clone = new AbilityEntity();
+                clone.setAbility(ability.getAbility());
+                clone.setUsesLeft(ability.getUsesLeft());
+                abilities.add(clone);
+            }
+            player.setAbilities(abilities);
         }
         
         game.setBoard(board);

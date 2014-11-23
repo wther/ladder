@@ -1,8 +1,11 @@
 package hu.bme.aut.ladder.strategy.impl;
 
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,10 +45,26 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
             
             final int sequenceNumber = getNextAvailableSequenceNumber(board);
             
+            // Make sure that this player has earthquake uses left
+            AbilityEntity earthquake = null;
+            for(AbilityEntity ability : player.getAbilities()){
+                if(ability.getAbility() == AbilityEntity.Ability.EARTHQUAKE && ability.getUsesLeft() > 0){
+                    earthquake = ability;
+                    break;
+                }
+            }
+            
+            if(earthquake == null){
+                throw new BoardActionNotPermitted("Player " + player.getName() + " doesn't have any more earthquakes");
+            }
+            
             // Move each with the same sequence number
             for(PlayerEntity item : board.getPlayers()){
                 executeEarthquakeForOnePlayer(board, item, sequenceNumber);
             }
+            
+            // Reduce the number of earthquakes for this player
+            earthquake.setUsesLeft(earthquake.getUsesLeft() - 1);
         } else {
             throw new BoardActionNotPermitted("Only ROLL and EARTHQUAKE is permitted by " + this.getClass().getSimpleName());
         }
@@ -70,4 +89,15 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
         
         movePlayerRecursively(board, player, newPosition, sequenceNumber, "EARTHQUAKE");
     }    
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<AbilityEntity> getInitialAbilityKit() {
+        AbilityEntity earthquake = new AbilityEntity();
+        earthquake.setAbility(AbilityEntity.Ability.EARTHQUAKE);
+        earthquake.setUsesLeft(2);
+        return Arrays.asList(earthquake);
+    }
 }

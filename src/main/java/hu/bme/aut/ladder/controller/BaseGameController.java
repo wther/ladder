@@ -6,6 +6,7 @@ import hu.bme.aut.ladder.controller.dto.PlayerDTO;
 import hu.bme.aut.ladder.controller.dto.StateChangeDTO;
 import hu.bme.aut.ladder.controller.dto.TunnelDTO;
 import hu.bme.aut.ladder.controller.dto.UserDTO;
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
@@ -17,7 +18,9 @@ import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.UserService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -124,6 +127,14 @@ public abstract class BaseGameController {
             playerDTO.setIsFinished(player.isFinishedPlaying());
             playerDTO.setFinishedAtPlace(player.getFinishedAtPlace());
             playerDTO.setType(player.getType().name());
+            
+            // Add player abilities
+            Map<String,Integer> abilityMap = new HashMap<String, Integer>();
+            for(AbilityEntity ability : player.getAbilities()){
+                abilityMap.put(ability.getAbility().name(), ability.getUsesLeft());
+            }
+            playerDTO.setAbilityUsesLeft(abilityMap);
+                    
             playerDTOList.add(playerDTO);
             
             // Is this the next player (if there is any)

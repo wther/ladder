@@ -1,5 +1,6 @@
 package hu.bme.aut.ladder.strategy.impl;
 
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.entity.StateChangeEntity;
@@ -36,6 +37,7 @@ public abstract class BaseBoardStrategyImplTest {
             player.setPlayerId(new Long(i));
             player.setPosition(0);
             player.setType(PlayerEntity.Type.HUMAN);
+            player.setAbilities(new ArrayList<AbilityEntity>());
             players.add(player);
         }
         

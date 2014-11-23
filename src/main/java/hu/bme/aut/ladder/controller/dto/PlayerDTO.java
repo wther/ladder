@@ -1,5 +1,7 @@
 package hu.bme.aut.ladder.controller.dto;
 
+import java.util.Map;
+
 /**
  * DTO for players on the board
  * 
@@ -41,7 +43,17 @@ public class PlayerDTO {
      * Value indicating the place (1st, 2nd, etc.) this player finished on if {@link #isFinished} is <i>true</i>
      */
     private int finishedAtPlace;
-
+    
+    /**
+     * Map indicating how many uses the player has per ability, e.g.
+     * <code>
+     * {
+     *  'EARTHQUAKE': 2
+     * }
+     * </code>
+     */
+    private Map<String,Integer> abilityUsesLeft;
+   
     public int getPosition() {
         return position;
     }
@@ -96,5 +108,13 @@ public class PlayerDTO {
 
     public void setFinishedAtPlace(int finishedAtPlace) {
         this.finishedAtPlace = finishedAtPlace;
+    }
+
+    public Map<String, Integer> getAbilityUsesLeft() {
+        return abilityUsesLeft;
+    }
+
+    public void setAbilityUsesLeft(Map<String, Integer> abilityUsesLeft) {
+        this.abilityUsesLeft = abilityUsesLeft;
     }
 }

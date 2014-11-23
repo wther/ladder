@@ -1,7 +1,9 @@
 package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.BaseIntegrationTest;
+import hu.bme.aut.ladder.data.entity.AbilityEntity.Ability;
 import hu.bme.aut.ladder.data.entity.GameEntity;
+import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.ROBOT;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.GameService;
@@ -227,7 +229,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
      * @throws GameActionNotAllowedException 
      */
     @Test
-    public void thatGameIsDeletedIfNoHumanPlayerIsLeft() throws GameActionNotAllowedException{
+    public void thatGameIsDeletedIfNoHumanPlayerIsLeft() throws GameActionNotAllowedException {
          // Arrange
         UserEntity user = new UserEntity();
         user.setName("Test");
@@ -245,5 +247,30 @@ public class GameServiceImplTest extends BaseIntegrationTest {
          // Assert
         assertNull("User shouldn't be in a game", user.getGame());
         assertEquals("Game should've been deleted", 0, gameRepository.findAll().size());
+    }
+    
+    /**
+     * Test that each player added to the game has earthquake ability
+     * 
+     * @throws GameActionNotAllowedException 
+     */
+    @Test
+    public void thatGameCreatedWithPlayersHavingEarthquakeAbility() throws GameActionNotAllowedException {
+         // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+        userRepository.save(user);
+        
+        GameEntity game = target.intializeGame(user);
+        game.setNumberOfRobots(1);
+        
+        // Start the game
+        target.startGame(game);
+        
+        // Assert
+        for(PlayerEntity player : game.getBoard().getPlayers()){
+            assertEquals("Should have ability", 1, player.getAbilities().size());
+            assertEquals("Unexpected ability in: " + player.getAbilities(), Ability.EARTHQUAKE, player.getAbilities().get(0).getAbility());
+        }
     }
 }
