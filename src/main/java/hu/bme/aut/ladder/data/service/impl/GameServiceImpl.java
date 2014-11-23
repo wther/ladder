@@ -122,9 +122,6 @@ public class GameServiceImpl implements GameService {
                             .withSnakes(game.getNumberOfSnakes())
                             .build(boardStrategy);
         
-        // @TODO
-        // Randomize the order of the players
-        
         // Add players
         int colorIndex = 0;
         for(UserEntity user : users){
@@ -142,6 +139,9 @@ public class GameServiceImpl implements GameService {
             userRepository.save(user);            
             board.getPlayers().add(user.getPlayer());
         }
+        
+        // Set the next player on the board
+        board.setNextPlayer(board.getPlayers().get(0));
         
         // Add robots
         for(int i = 0; i < game.getNumberOfRobots(); i++){

@@ -73,8 +73,18 @@ public final class BoardBuilder {
         // For each snake
         List<TunnelEntity> retVal = new ArrayList<TunnelEntity>();
         for(int i = 0; i < count; i++){
-            int from = random.nextInt(size);
-            int to = random.nextInt(size);
+            int from = 0, to = 0;
+            
+            for(int j = 0; j < 200; j++){
+                from = random.nextInt(size);
+                to = random.nextInt(size);
+                
+                // Only pass of tunnel is not too big,
+                // but big enough
+                if(Math.abs(to - from) < 40 && Math.abs(to-from) > 15){
+                    break;
+                }
+            }
             
             // They can't be equal
             if(to == from){
