@@ -84,6 +84,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         // Arrange
         BoardEntity board = mockBoard(4);
         board.setBoardSize(8*8);
+        setMockAbilityEarthquake(board);
         
         // Move players to a given position
         int[] startingPositions = {0, 37, 42, 59};
