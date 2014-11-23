@@ -1,5 +1,6 @@
 package hu.bme.aut.ladder.data.service;
 
+import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity.GameState;
 import hu.bme.aut.ladder.data.entity.UserEntity;
@@ -46,9 +47,9 @@ public interface GameService {
      * Set the number of robots for the game
      * 
      * @param game
-     * @param numberOfRobots 
+     * @param params
      */
-    void setNumberOfRobots(GameEntity game, int numberOfRobots);
+    void setGameParams(GameEntity game, GameParamsDTO params);
     
     /**
      * Find game by its id 

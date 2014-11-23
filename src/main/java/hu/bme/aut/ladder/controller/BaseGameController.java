@@ -71,8 +71,15 @@ public abstract class BaseGameController {
         dto.setCreated(game.getCreated());
         dto.setHost(game.getHost().getName());
         dto.setUser(user.getName());
+        
         dto.setNumberOfRobots(game.getNumberOfRobots());
-
+        dto.setBoardSize(game.getBoardSize());
+        dto.setNumberOfRobots(game.getNumberOfRobots());
+        dto.setNumberOfSnakes(game.getNumberOfSnakes());
+        dto.setNumberOfLadders(game.getNumberOfLadders());
+        
+        dto.setGameStarted(game.getGameState() == GameEntity.GameState.BOARD_STARTED);
+        
         boolean found = false;
 
         List<UserDTO> players = new ArrayList<UserDTO>();

@@ -45,6 +45,26 @@ public class GameDTO {
      * Number of robots in the game
      */
     private int numberOfRobots;
+    
+    /**
+     * Size of the board
+     */
+    private int boardSize;
+    
+    /**
+     * Number of snakes on the board
+     */
+    private int numberOfSnakes;
+    
+    /**
+     * Number of ladders
+     */
+    private int numberOfLadders;
+    
+    /**
+     * Value indicating that game has started
+     */
+    private boolean gameStarted;
 
     public Long getGameId() {
         return gameId;
@@ -101,4 +121,36 @@ public class GameDTO {
     public void setNumberOfRobots(int numberOfRobots) {
         this.numberOfRobots = numberOfRobots;
     }
+
+    public int getBoardSize() {
+        return boardSize;
+    }
+
+    public void setBoardSize(int boardSize) {
+        this.boardSize = boardSize;
+    }
+
+    public int getNumberOfSnakes() {
+        return numberOfSnakes;
+    }
+
+    public void setNumberOfSnakes(int numberOfSnakes) {
+        this.numberOfSnakes = numberOfSnakes;
+    }
+
+    public int getNumberOfLadders() {
+        return numberOfLadders;
+    }
+
+    public void setNumberOfLadders(int numberOfLadders) {
+        this.numberOfLadders = numberOfLadders;
+    }
+
+    public boolean isGameStarted() {
+        return gameStarted;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        this.gameStarted = gameStarted;
+    }  
 }

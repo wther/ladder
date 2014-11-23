@@ -1,6 +1,8 @@
 package hu.bme.aut.ladder.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.bme.aut.ladder.BaseControllerTest;
+import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import static hu.bme.aut.ladder.data.entity.PlayerEntity.Type.ROBOT;
@@ -14,6 +16,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -53,6 +56,7 @@ public class RoomControllerTest extends BaseControllerTest {
             .perform(get(RoomController.GAME_DETAILS).session(session))
             .andExpect(status().is(HttpStatus.OK.value()))
             .andExpect(jsonPath("$.numberOfRobots", is(0)))
+            .andExpect(jsonPath("$.gameStarted", is(false)))
             .andExpect(jsonPath("$.allPlayers", hasSize(2)));
     }
     
@@ -74,6 +78,12 @@ public class RoomControllerTest extends BaseControllerTest {
         mockMvc
             .perform(post(RoomController.GAME_START_URI).session(hostSession))
             .andExpect(status().is(HttpStatus.OK.value()));
+
+        // Verify that room indicates that game has started
+        mockMvc
+            .perform(get(RoomController.GAME_DETAILS).session(hostSession))
+            .andExpect(status().is(HttpStatus.OK.value()))
+            .andExpect(jsonPath("$.gameStarted", is(true)));
         
         // Assert
         final BoardEntity board = gameRepository.findAll().get(0).getBoard();
@@ -104,7 +114,7 @@ public class RoomControllerTest extends BaseControllerTest {
                 .andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
     }
     
-     /**
+    /**
      * Play this scenario:
      * <ul>
      *  <li> Create a new game </li>
@@ -119,11 +129,20 @@ public class RoomControllerTest extends BaseControllerTest {
         
         final int numberOfPlayers = 4;
         
+        GameParamsDTO params = new GameParamsDTO();
+        params.setSize(100);
+        params.setLadders(5);
+        params.setSnakes(5);
+        params.setRobots(numberOfPlayers-1);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        
         // Add robots to the game
         mockMvc
-            .perform(post(RoomController.GAME_ROBOT_NUMBER)
+            .perform(post(RoomController.GAME_PARAMS)
                     .session(hostSession)
-                    .param("number", Integer.toString(numberOfPlayers-1)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(params)))
             .andExpect(status().is(HttpStatus.OK.value()));
         
         mockMvc
@@ -139,6 +158,42 @@ public class RoomControllerTest extends BaseControllerTest {
         for(int i = 1; i < numberOfPlayers; i++){
             assertEquals("Player " + i + " should be a ROBOT", ROBOT, board.getPlayers().get(i).getType());
         }
+    }
+    
+    /**
+     * Set game size to 8x8 and attempt to start it
+     */
+    @Test
+    public void thatHostCanStartA8x8Game() throws Exception {
+        // Create game once
+        MockHttpSession hostSession = createNewGame();
+        
+        final int numberOfPlayers = 4;
+        
+        GameParamsDTO params = new GameParamsDTO();
+        params.setSize(8*8);
+        params.setLadders(3);
+        params.setSnakes(7);
+        params.setRobots(2);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        
+        // Add robots to the game
+        mockMvc
+            .perform(post(RoomController.GAME_PARAMS)
+                    .session(hostSession)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(params)))
+            .andExpect(status().is(HttpStatus.OK.value()));
+        
+        // Request game details
+        mockMvc
+            .perform(get(RoomController.GAME_DETAILS).session(hostSession))
+            .andExpect(status().is(HttpStatus.OK.value()))
+            .andExpect(jsonPath("$.numberOfRobots", is(params.getRobots())))
+            .andExpect(jsonPath("$.boardSize", is(params.getSize())))
+            .andExpect(jsonPath("$.numberOfLadders", is(params.getLadders())))
+            .andExpect(jsonPath("$.numberOfSnakes", is(params.getSnakes())));
     }
     
     /**

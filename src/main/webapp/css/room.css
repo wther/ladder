@@ -128,17 +128,21 @@ div.button:hover {
 	background-color: #66AAAA;
 }
 
-div#robotRow {
+div.paramRow {
     margin-top: 20px;
     text-align: center;
 }
 
-div#robotRow div.button {
-    width: 50px;
+div.paramRow div.button {
+    width: 80px;
     margin-top: 0px;
 }
 
-div#robotRow div.button-selected {
+div.paramRow-small div.button {
+    width: 50px;
+}
+
+div.paramRow div.button-selected {
     background-color: #66AAAA;
 }
 
