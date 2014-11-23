@@ -241,6 +241,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
                 
         UserEntity otherUser = new UserEntity();
         otherUser.setName("Other user");
+        otherUser.setReady(Boolean.TRUE);
         userRepository.save(Arrays.asList(user, otherUser));
         
         GameEntity game = target.intializeGame(user);
@@ -294,7 +295,7 @@ public class GameServiceImplTest extends BaseIntegrationTest {
      */
     @Test
     public void thatGameCreatedWithPlayersHavingEarthquakeAbility() throws GameActionNotAllowedException {
-         // Arrange
+        // Arrange
         UserEntity user = new UserEntity();
         user.setName("Test");
         userRepository.save(user);
@@ -310,5 +311,29 @@ public class GameServiceImplTest extends BaseIntegrationTest {
             assertEquals("Should have ability", 1, player.getAbilities().size());
             assertEquals("Unexpected ability in: " + player.getAbilities(), Ability.EARTHQUAKE, player.getAbilities().get(0).getAbility());
         }
+    }
+    
+    
+    /**
+     * Test that if host attempts to start a game with not all players
+     * ready it's not allowed
+     */
+    @Test(expected = GameActionNotAllowedException.class)
+    public void thatCantBeStartedUntilPlayersAreReady() throws GameActionNotAllowedException{
+        
+        // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+        userRepository.save(user);
+        
+        GameEntity game = target.intializeGame(user);
+        
+        UserEntity guest = new UserEntity();
+        guest.setName("I'm not the host");
+        userRepository.save(guest);
+        
+        // Act
+        target.join(game.getGameId(), guest);
+        target.startGame(game);        
     }
 }
