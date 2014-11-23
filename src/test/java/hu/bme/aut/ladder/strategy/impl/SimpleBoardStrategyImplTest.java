@@ -5,12 +5,15 @@ import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.entity.TunnelEntity;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.LADDER;
 import static hu.bme.aut.ladder.data.entity.TunnelEntity.Type.SNAKE;
+import hu.bme.aut.ladder.strategy.Dice;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
@@ -263,5 +266,50 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
                 
         // Act
         target.executeAction(board, board.getPlayers().get(0), "ROLL");
+    }
+    
+    /**
+     * Test that when I roll 6 I roll again
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatPlayerRollsAgainOnSix() throws BoardActionNotPermitted {
+        
+        BoardEntity board = mockBoard(2);
+        
+        Dice dice = mock(Dice.class);
+        when(dice.getNext()).thenReturn(6,2);
+        target.setDice(dice);
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        
+        // Assert
+        assertEquals("Next player should've rolled twice", 2, board.getStateChanges().size()); 
+        assertEquals("Next player should've rolled twice", board.getPlayers().get(0), board.getStateChanges().get(0).getPlayer()); 
+        assertEquals("Next player should've rolled twice", board.getPlayers().get(0), board.getStateChanges().get(1).getPlayer());         
+    }
+    
+    /**
+     * Test that when I roll 6 three times I get thrown back to 0
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatPlayerIsThrownBackToStartIfTooLucky() throws BoardActionNotPermitted {
+        
+        BoardEntity board = mockBoard(2);
+        
+        Dice dice = mock(Dice.class);
+        when(dice.getNext()).thenReturn(6,6,6);
+        target.setDice(dice);
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        
+        // Assert
+        assertEquals("Next player should've rolled three times", 3, board.getStateChanges().size()); 
+        assertEquals("Next player should've rolled twice", 0, board.getPlayers().get(0).getPosition()); 
     }
 }
