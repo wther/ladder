@@ -71,7 +71,6 @@ public class BoardControllerTest extends BaseControllerTest {
                     .param("action", "ROLL"))
             .andExpect(jsonPath("$.size", is(100)))
             .andExpect(jsonPath("$.stateChanges", not(hasSize(0))))
-            .andExpect(jsonPath("$.players[0].position", not(is(0))))
             .andExpect(jsonPath("$.players[0].isFinished", is(false)))
             .andExpect(jsonPath("$.nextPlayer.color", is(PlayerEntity.Color.values()[1].name())))
             .andExpect(status().is(HttpStatus.OK.value()));
@@ -82,7 +81,6 @@ public class BoardControllerTest extends BaseControllerTest {
                     .param("action", "ROLL"))
             .andExpect(jsonPath("$.size", is(100)))
             .andExpect(jsonPath("$.stateChanges", not(hasSize(1))))
-            .andExpect(jsonPath("$.players[1].position", not(is(0))))
             .andExpect(jsonPath("$.players[1].isFinished", is(false)))
             .andExpect(jsonPath("$.nextPlayer.color", is(PlayerEntity.Color.values()[0].name())))
             .andExpect(status().is(HttpStatus.OK.value()));

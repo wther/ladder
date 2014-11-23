@@ -59,21 +59,62 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
     
     /**
      * Executes an action for a single player, human/robot the same. Doesn't move any other player
+     * @returns The dice rolled, e.g. 5
      */
     protected void executeRollForOnePlayer(BoardEntity board, PlayerEntity player) throws BoardActionNotPermitted {
-                
-        // Determine new sequence number of action
-        int sequenceNumber = getNextAvailableSequenceNumber(board);
         
-        int toPosition = player.getPosition() + dice.getNext();
-        movePlayerRecursively(board, player, toPosition, sequenceNumber, "ROLL");
-                
+        // Repeat ROLL until player rolls 6, but only two times
+        int turn = 0;
+        for(; turn < 2; turn++){
+        
+            final int diceRolled = dice.getNext();
+            executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled);
+            
+            if(diceRolled != Dice.DICE_LIMIT){
+                break;
+            }
+        }
+        
+        // If player has rolled 6 twice, let him roll once again
+        if(turn == 2){
+            final int diceRolled = dice.getNext();
+
+            // If this is 6, then throw him back to 1
+            if(diceRolled == Dice.DICE_LIMIT){
+                executeSingleRollForOnePlayer(board, player, 0);
+            } else {
+                executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled);
+            }
+        }
+             
         int i = 0;
         for(; i < board.getPlayers().size(); i++){
             if(board.getPlayers().get(i).equals(player)){
                 break;
             }
         }
+        
+        // Set next player to (i+1) mod NumberOfPlayers, but skip as long
+        // as the given player has already finished playing!
+        for(int j = 1; j < board.getPlayers().size(); j++){
+            final PlayerEntity nextPlayer = board.getPlayers().get((i+j) % board.getPlayers().size());
+            if(!nextPlayer.isFinishedPlaying()){
+                board.setNextPlayer(nextPlayer);
+                break;
+            }
+        }
+    }
+    
+    /**
+     * Executes an action for a single player, human/robot the same. Doesn't move any other player
+     * @returns The dice rolled, e.g. 5
+     */
+    private void executeSingleRollForOnePlayer(BoardEntity board, PlayerEntity player, int toPosition) throws BoardActionNotPermitted {
+                
+        // Determine new sequence number of action
+        int sequenceNumber = getNextAvailableSequenceNumber(board);
+        
+        movePlayerRecursively(board, player, toPosition, sequenceNumber, "ROLL");
         
         // Did this player finish?
         if(player.getPosition() >= board.getBoardSize()-1){
@@ -88,16 +129,6 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
             }
             
             player.setFinishedAtPlace(count);            
-        }
-        
-        // Set next player to (i+1) mod NumberOfPlayers, but skip as long
-        // as the given player has already finished playing!
-        for(int j = 1; j < board.getPlayers().size(); j++){
-            final PlayerEntity nextPlayer = board.getPlayers().get((i+j) % board.getPlayers().size());
-            if(!nextPlayer.isFinishedPlaying()){
-                board.setNextPlayer(nextPlayer);
-                break;
-            }
         }
     }
     
