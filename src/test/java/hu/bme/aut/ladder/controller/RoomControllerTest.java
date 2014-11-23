@@ -71,9 +71,16 @@ public class RoomControllerTest extends BaseControllerTest {
         List<GameEntity> games = gameRepository.findAll();
         
         // Join the game
-        mockMvc
+        MvcResult result = mockMvc
             .perform(put(LobbyController.JOIN_GAME_URI + "/" + games.get(0).getGameId()))
-            .andExpect(status().is(HttpStatus.OK.value()));
+            .andExpect(status().is(HttpStatus.OK.value()))
+            .andReturn();
+        
+        MockHttpSession guestSession = (MockHttpSession) result.getRequest().getSession();
+       
+        // Indicate that I'm ready
+        mockMvc.perform(post(UserController.SET_READY).session(guestSession)
+                .param("ready", "true"));
         
         mockMvc
             .perform(post(RoomController.GAME_START_URI).session(hostSession))

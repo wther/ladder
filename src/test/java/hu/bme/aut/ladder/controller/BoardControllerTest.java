@@ -151,6 +151,10 @@ public class BoardControllerTest extends BaseControllerTest {
         
         MockHttpSession playerSession = (MockHttpSession)result.getRequest().getSession();
         
+         // Indicate that I'm ready
+        mockMvc.perform(post(UserController.SET_READY).session(playerSession)
+                .param("ready", "true"));
+        
         // Start the game
         mockMvc
             .perform(post(RoomController.GAME_START_URI).session(hostSession))

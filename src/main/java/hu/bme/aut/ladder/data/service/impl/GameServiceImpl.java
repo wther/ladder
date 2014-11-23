@@ -125,6 +125,12 @@ public class GameServiceImpl implements GameService {
         // Add players
         int colorIndex = 0;
         for(UserEntity user : users){
+            
+            // Make sure that this player is ready
+            if(!user.equals(game.getHost()) && !Boolean.TRUE.equals(user.getReady())){
+                throw new GameActionNotAllowedException("Can't start game, " + user.getName() + " isn't ready yet");
+            }
+            
             PlayerEntity player = new PlayerEntity();
             player.setPosition(0);
             player.setColor(PlayerEntity.Color.values()[colorIndex++]);
