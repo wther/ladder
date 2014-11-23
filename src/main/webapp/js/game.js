@@ -22,6 +22,9 @@ var IMGSRC_SNAKE = '../images/snake_';
 var SNAKE_IMAGECOUNT = 2;
 var SNAKE_SIZE_STEP = 400;
 
+// user has 5 seconds in his turn to make an action
+var TIME_FORUSERACTION = 5;
+
 //storing board data here
 var boardData;
 
@@ -299,27 +302,7 @@ function drawBoard(board) {
 	// add the layer to the stage
 	stage.add(boardLayer);
 	
-	// Draw players
 	
-	playerTokens = {};
-	playerLayer = new Kinetic.Layer();
-	
-	
-	for(var i = 0; i < board.players.length; i++){
-		var player = board.players[i];
-		var Dim = getTokenDim(player.position, i, board.size);
-		playerTokens[player.color] = new Kinetic.Image({
-			x: Dim.X,
-			y: Dim.Y,
-			image: playerImages[player.color],
-			width: Dim.W,
-			height: Dim.H,
-			visible: true,
-		});
-		playerTokens[player.color].i = i;
-		playerLayer.add(playerTokens[player.color]);
-	}
-	stage.add(playerLayer);
 
         
     // Draw snakes and ladders
@@ -358,6 +341,29 @@ function drawBoard(board) {
         }));
     }
     stage.add(ladderLayer);
+    
+    
+    // Draw players
+	
+	playerTokens = {};
+	playerLayer = new Kinetic.Layer();
+	
+	
+	for(var i = 0; i < board.players.length; i++){
+		var player = board.players[i];
+		var Dim = getTokenDim(player.position, i, board.size);
+		playerTokens[player.color] = new Kinetic.Image({
+			x: Dim.X,
+			y: Dim.Y,
+			image: playerImages[player.color],
+			width: Dim.W,
+			height: Dim.H,
+			visible: true,
+		});
+		playerTokens[player.color].i = i;
+		playerLayer.add(playerTokens[player.color]);
+	}
+	stage.add(playerLayer);
     
     stage.getContent().addEventListener('click', stageClicked);
 }
@@ -434,6 +440,13 @@ function showDice(rollValue) {
 	diceImages[rollValue - 1].css("display", "inline-block");
 }
 
+// earthquake ability used
+function earthquaked() {
+	$("#roll_button").attr("disabled", "disabled");
+	$("#earthquake_button").attr("disabled", "disabled");
+    safeProcessAnimations();
+}
+
 var rollAnim;
 
 var justRolled = false;
@@ -450,6 +463,7 @@ function rolled() {
 	
 }
 
+
 //clickBlocking means that no stateChanges must be animated until the player clicks on the correct field
 var clickBlocking = false;
 //fieldClicked is true when the player has clicked on the correct field
@@ -462,6 +476,20 @@ function clickFieldBlocking(stateChange) {
 	
 	playerMustClickHere = stateChange.to;
 	animateFieldToBeClicked(playerMustClickHere);
+	
+	timeUpClickCounting = true;
+	setTimeout(function() {
+		timeIsUpFieldClicking(stateChange);
+	}, TIME_FORUSERACTION * 1000);
+	
+}
+
+var timeUpClickCounting = false;
+//gets called when no time is left to click on field
+function timeIsUpFieldClicking(stateChange) {
+	if(timeUpClickCounting && processedUntilSequenceNumber < stateChange.sequenceNumber) {
+		stageClicked({override: true});
+	}
 }
 
 // animates the area to be clicked within animate
@@ -500,20 +528,25 @@ var playerMustClickHere;
 //detects if the player clicked on the correct field after a roll
 function stageClicked(evt) {
 	console.log("stage Clicked");
-	var XY = stage.getPointerPosition();
-	var x = XY.x;
-	var y = XY.y;
-	var pixels = fieldToPixels(17, boardData.size, SIZE, 0.06);
-	var pos = pixelToField(x, y);
-	console.log("position: " + pos);
-	if(playerMustClickHere === pos) {
+	var pos;
+	if(evt.override === undefined) {
+		var XY = stage.getPointerPosition();
+		var x = XY.x;
+		var y = XY.y;
+		var pixels = fieldToPixels(17, boardData.size, SIZE, 0.06);
+		pos = pixelToField(x, y);
+		console.log("position: " + pos);
+	}
+	
+	if(playerMustClickHere === pos || evt.override) {
 		stopRollAnim();
-		
+		timeUpClickCounting = false;
 		fieldClicked = true;
 		processAnimations();
 	}
 	
 }
+
 
 //only calls processAnimations if it's not currently processing
 function safeProcessAnimations() {
@@ -529,7 +562,7 @@ var processedUntilSequenceNumber = 0;
 //will be used for optimisation - so that the for loop doesn't need to loop through all stateChanges
 var currentArrayIndex = 0;
 
-
+//returns an array of the next stateChanges that need to be processed
 function getNextStateChanges() {
 	var stateChanges = [];
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
@@ -609,12 +642,17 @@ function processAnimations() {
 		processing = false;
 		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
 			$("#roll_button").removeAttr("disabled");
-			$("#earthquake_button").removeAttr("disabled");
+			
+			if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
+				$("#earthquake_button").removeAttr("disabled");
+			}
 		}
 		
 	}
 	
 }
+
+
 
 //this part is for getting around corners nicely
 var tStateChanges;
@@ -767,6 +805,7 @@ function animateStateChangesSimultaneously(stateChanges, board) {
 	}
 }
 
+
 //refreshes the board data but does not redraw it
 function refreshBoardData() {
 	$.get('board', function(data) {
@@ -814,8 +853,9 @@ $('#earthquake_button').click(function(){
         method: 'POST',
         success: function(data){
             //@TODO refactor
+        	
             boardData = data;
-            safeProcessAnimations();
+            earthquaked();
         }
     });
 });
