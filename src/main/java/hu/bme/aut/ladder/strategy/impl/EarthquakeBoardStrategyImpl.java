@@ -44,7 +44,9 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
             
             // Move each with the same sequence number
             for(PlayerEntity item : board.getPlayers()){
-                executeEarthquakeForOnePlayer(board, item, sequenceNumber);
+                if(!item.isFinishedPlaying()){
+                    executeEarthquakeForOnePlayer(board, item, sequenceNumber);
+                }
             }
         } else {
             throw new BoardActionNotPermitted("Only ROLL and EARTHQUAKE is permitted by " + this.getClass().getSimpleName());
@@ -60,12 +62,17 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
      
         final int currentPosition = player.getPosition();
         
+        final int width = (int)Math.floor(Math.sqrt(board.getBoardSize()));
+        if(board.getBoardSize() != width*width){
+            throw new IllegalArgumentException("Earthquake is only possible for squared boards, boardSize " + board.getBoardSize() + " isn't");
+        }
+        
         // Is the current row going right
         int newPosition;
-        if((currentPosition/10) % 2 == 0){
-            newPosition = currentPosition - currentPosition % 10 + 9;
+        if((currentPosition/width) % 2 == 0){
+            newPosition = currentPosition - currentPosition % width + width -1;
         } else {
-            newPosition = currentPosition - currentPosition % 10;
+            newPosition = currentPosition - currentPosition % width;
         }        
         
         movePlayerRecursively(board, player, newPosition, sequenceNumber, "EARTHQUAKE");

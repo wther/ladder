@@ -4,7 +4,6 @@ import hu.bme.aut.ladder.BaseControllerTest;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.repository.GameRepository;
-import hu.bme.aut.ladder.data.service.GameService;
 import java.util.Arrays;
 import java.util.List;
 import static org.hamcrest.Matchers.hasSize;

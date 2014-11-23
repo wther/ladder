@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.controller;
 
 import hu.bme.aut.ladder.controller.dto.GameDTO;
+import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
@@ -10,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -39,14 +40,14 @@ public class RoomController extends BaseGameController {
     public static final String LEAVE_GAME_URI = "/game/leave";
         
     /**
-     * URI to create leave a game
+     * URI to start the game
      */
     public static final String GAME_START_URI = "/game/start";
     
     /**
-     * URI to create leave a game
+     * URI to set number of robots, etc.
      */
-    public static final String GAME_ROBOT_NUMBER = "/game/robots";
+    public static final String GAME_PARAMS = "/game/params";
     
     /**
      * Returns a list of all the started games
@@ -57,6 +58,11 @@ public class RoomController extends BaseGameController {
         
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         LOGGER.info("Room details requested by {}", user);
+        
+        if(user.getGame() == null){
+            LOGGER.warn("No game for user: {}", user);
+            return new ResponseEntity<GameDTO>(HttpStatus.NOT_FOUND);
+        }
         
         GameEntity game = service.findGameById(user.getGame().getGameId());
         if(game == null){
@@ -112,11 +118,11 @@ public class RoomController extends BaseGameController {
      * 
      * @param request
      */
-    @RequestMapping(value = GAME_ROBOT_NUMBER, method = RequestMethod.POST)
-    public ResponseEntity<String> robots(HttpServletRequest request, @RequestParam int number) throws GameActionNotAllowedException {
+    @RequestMapping(value = GAME_PARAMS, method = RequestMethod.POST)
+    public ResponseEntity<String> params(HttpServletRequest request, @RequestBody GameParamsDTO params) throws GameActionNotAllowedException {
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         
-        LOGGER.info("{} is attempting to set the number of robots for game {} to {}", user, user.getGame(), number);
+        LOGGER.info("{} is attempting to set the params for game {} to {}", user, user.getGame(), params);
         
         if(user.getGame() == null){
             LOGGER.warn("No game associated with {}", user.getName());
@@ -137,7 +143,7 @@ public class RoomController extends BaseGameController {
             return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
         }
         
-        service.setNumberOfRobots(user.getGame(), number);
+        service.setGameParams(user.getGame(), params);
         return new ResponseEntity<String>(HttpStatus.OK);
     }
     

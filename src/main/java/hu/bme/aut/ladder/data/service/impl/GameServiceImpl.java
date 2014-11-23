@@ -1,5 +1,6 @@
 package hu.bme.aut.ladder.data.service.impl;
 
+import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.builder.BoardBuilder;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
@@ -12,6 +13,7 @@ import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
@@ -48,6 +50,11 @@ public class GameServiceImpl implements GameService {
     @Autowired
     @Qualifier("earthquakeBoardStrategyImpl")
     private BoardStrategy boardStrategy;
+    
+    /**
+     * Allowed sizes for boards
+     */
+    private static final List<Integer> ALLOWED_SIZES = Arrays.asList(8*8, 10*10, 12*12);
 
     /**
      * {@inheritDoc}
@@ -66,7 +73,13 @@ public class GameServiceImpl implements GameService {
         game.setGameState(GameEntity.GameState.INITIALIZED);
         game.setCreated(new Timestamp(new Date().getTime()));
         game.setHost(host);
+        
+        // Set default params
         game.setNumberOfRobots(0);
+        game.setBoardSize(100);
+        game.setNumberOfLadders(5);
+        game.setNumberOfSnakes(5);
+        
         host.setGame(game);
         
         repository.save(game);
@@ -101,7 +114,11 @@ public class GameServiceImpl implements GameService {
         }
         
         // We're OK to take off
-        BoardEntity board = new BoardBuilder().build(boardStrategy);
+        BoardEntity board = new BoardBuilder()
+                            .withSize(game.getBoardSize())
+                            .withLadders(game.getNumberOfLadders())
+                            .withSnakes(game.getNumberOfSnakes())
+                            .build(boardStrategy);
         
         // @TODO
         // Randomize the order of the players
@@ -253,11 +270,33 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void setNumberOfRobots(GameEntity game, int numberOfRobots) {
-        if(numberOfRobots < 0){
+    public void setGameParams(GameEntity game, GameParamsDTO params) {
+        
+        if(params.getRobots() < 0){
             throw new IllegalArgumentException("Number of robots has to be 0 or higher");
         }
-        game.setNumberOfRobots(numberOfRobots);
+        
+        if(params.getRobots() > 3){
+            throw new IllegalArgumentException("Number of robots has to be between 0 and 3");
+        }
+        
+        if(params.getLadders() < 0){
+            throw new IllegalArgumentException("Number of ladders has to higher than or equal to 0, " + params.getLadders() + " isn't");
+        }
+        
+        if(params.getSnakes() < 0){
+            throw new IllegalArgumentException("Number of snakes has to higher than or equal to 0, " + params.getSnakes() + " isn't");
+        }
+        
+        if(!ALLOWED_SIZES.contains(params.getSize())){
+            throw new IllegalArgumentException("Unexpected board size " + params.getSize() + " allowed values are " + ALLOWED_SIZES.toString());
+        }
+        
+        game.setBoardSize(params.getSize());
+        game.setNumberOfRobots(params.getRobots());
+        game.setNumberOfSnakes(params.getSnakes());
+        game.setNumberOfLadders(params.getLadders());
+        
         repository.save(game);
     }
 }

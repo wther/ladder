@@ -1,7 +1,5 @@
 package hu.bme.aut.ladder.data.entity;
 
-import java.sql.Timestamp;
-import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -68,6 +66,25 @@ public class GameEntity {
      */
     @Column
     private int numberOfRobots;
+    
+    
+    /**
+     * Size of the board
+     */
+    @Column
+    private int boardSize;
+    
+    /**
+     * Number of snakes on the board
+     */
+    @Column
+    private int numberOfSnakes;
+    
+    /**
+     * Number of ladders on the board
+     */
+    @Column
+    private int numberOfLadders;
             
     /**
      * State of the game
@@ -124,8 +141,32 @@ public class GameEntity {
         this.numberOfRobots = numberOfRobots;
     }
 
+    public int getBoardSize() {
+        return boardSize;
+    }
+
+    public void setBoardSize(int boardSize) {
+        this.boardSize = boardSize;
+    }
+
+    public int getNumberOfSnakes() {
+        return numberOfSnakes;
+    }
+
+    public void setNumberOfSnakes(int numberOfSnakes) {
+        this.numberOfSnakes = numberOfSnakes;
+    }
+
+    public int getNumberOfLadders() {
+        return numberOfLadders;
+    }
+
+    public void setNumberOfLadders(int numberOfLadders) {
+        this.numberOfLadders = numberOfLadders;
+    }
+
     @Override
     public String toString() {
-        return "GameEntity{" + "gameId=" + gameId + ", created=" + created + ", gameState=" + gameState + ", host=" + host + '}';
+        return "GameEntity{" + "gameId=" + gameId + ", created=" + created + ", gameState=" + gameState + ", host=" + host + ", numberOfRobots=" + numberOfRobots + ", boardSize=" + boardSize + ", numberOfSnakes=" + numberOfSnakes + ", numberOfLadders=" + numberOfLadders + '}';
     }
 }

@@ -4,8 +4,6 @@ import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
