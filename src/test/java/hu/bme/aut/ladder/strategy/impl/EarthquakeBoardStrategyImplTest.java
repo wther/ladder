@@ -1,8 +1,9 @@
 package hu.bme.aut.ladder.strategy.impl;
 
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
-import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
+import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -48,6 +49,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         
         // Arrange
         BoardEntity board = mockBoard(4);
+        setMockAbilityEarthquake(board);
         
         // Move players to a given position
         int[] startingPositions = {0, 37, 42, 94};
@@ -71,5 +73,41 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         assertEquals("37 should fall back to to 30", 30, board.getPlayers().get(1).getPosition());
         assertEquals("42 should advance to to 49", 49, board.getPlayers().get(2).getPosition());
         assertEquals("94 should fall back to to 90", 90, board.getPlayers().get(3).getPosition());
+    }
+    
+    /**
+     * Test that using earthquake adjusts the usesLeft value of the ability
+     * 
+     * @throws BoardActionNotPermitted 
+     */
+    @Test
+    public void thatAbilityUsesAreReducedWhenUsingEarthquake() throws BoardActionNotPermitted {
+        
+         // Arrange
+        BoardEntity board = mockBoard(4);
+        setMockAbilityEarthquake(board);
+        
+        // Act
+        target.executeAction(board, board.getPlayers().get(0), "EARTHQUAKE");
+        
+        // Abilities uses should be adjusted
+        assertEquals("Player who uses should be adjusted", 1, board.getPlayers().get(0).getAbilities().get(0).getUsesLeft());
+        assertEquals("Player who doesn't use should not be adjusted", 2, board.getPlayers().get(1).getAbilities().get(0).getUsesLeft());
+        
+    }
+
+    /**
+     * Add earthquake ability to all players
+     * 
+     * @param board 
+     */
+    private static void setMockAbilityEarthquake(BoardEntity board){
+        for(int i = 0; i < board.getPlayers().size(); i++){
+            AbilityEntity ability = new AbilityEntity();
+            ability.setAbilityId(new Long(i));
+            ability.setAbility(AbilityEntity.Ability.EARTHQUAKE);
+            ability.setUsesLeft(2);
+            board.getPlayers().get(i).setAbilities(Arrays.asList(ability));
+        }
     }
 }

@@ -1,8 +1,10 @@
 package hu.bme.aut.ladder.strategy;
 
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
+import java.util.List;
 
 /**
  * Interface for the 
@@ -29,5 +31,13 @@ public interface BoardStrategy {
      * @return 
      */
     boolean isBoardAlwaysSolvable(BoardEntity board);
+    
+    /**
+     * Returns the original ability kit available for players in the game,
+     * e.g. 2 EARTHQUAKE
+     * 
+     * @return 
+     */
+    List<AbilityEntity> getInitialAbilityKit();
     
 }

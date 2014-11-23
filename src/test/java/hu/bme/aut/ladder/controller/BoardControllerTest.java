@@ -105,6 +105,8 @@ public class BoardControllerTest extends BaseControllerTest {
                     .param("action", "EARTHQUAKE"))
             .andExpect(jsonPath("$.stateChanges", not(hasSize(0))))
             .andExpect(jsonPath("$.stateChanges[0].causedBy", is("EARTHQUAKE")))
+            .andExpect(jsonPath("$.players[0].abilityUsesLeft['EARTHQUAKE']", is(1)))
+            .andExpect(jsonPath("$.players[1].abilityUsesLeft['EARTHQUAKE']", is(2)))
             .andExpect(status().is(HttpStatus.OK.value()));
     }
     

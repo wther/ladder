@@ -1,13 +1,16 @@
 package hu.bme.aut.ladder.data.entity;
 
-import java.util.Objects;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -65,6 +68,12 @@ public class PlayerEntity {
      */
     @Column
     private int finishedAtPlace = 0;
+    
+    /**
+     * Abilities available for this user
+     */
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<AbilityEntity> abilities;
 
     public Long getPlayerId() {
         return playerId;
@@ -120,6 +129,14 @@ public class PlayerEntity {
 
     public void setFinishedAtPlace(int finishedAtPlace) {
         this.finishedAtPlace = finishedAtPlace;
+    }
+
+    public List<AbilityEntity> getAbilities() {
+        return abilities;
+    }
+
+    public void setAbilities(List<AbilityEntity> abilities) {
+        this.abilities = abilities;
     }
     
     public enum Color {

@@ -1,11 +1,12 @@
 package hu.bme.aut.ladder.strategy.impl;
 
+import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,5 +43,13 @@ public class SimpleBoardStrategyImpl extends BaseRollingBoardStrategy {
             executeRollForOnePlayer(board, currentPlayer);
             currentPlayer = board.getNextPlayer();            
         } while (board.getNextPlayer().getType() == PlayerEntity.Type.ROBOT  && !currentPlayer.isFinishedPlaying());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<AbilityEntity> getInitialAbilityKit() {
+        return new ArrayList<AbilityEntity>();
     }
 }
