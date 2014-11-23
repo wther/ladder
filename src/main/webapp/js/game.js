@@ -484,7 +484,8 @@ function clickFieldBlocking(stateChange) {
 	
 }
 
-//gets called when no time is left to click
+var timeUpClickCounting = false;
+//gets called when no time is left to click on field
 function timeIsUpFieldClicking(stateChange) {
 	if(timeUpClickCounting && processedUntilSequenceNumber < stateChange.sequenceNumber) {
 		stageClicked({override: true});
@@ -520,8 +521,6 @@ function stopRollAnim() {
 	boardLayer.draw();
 	
 }
-
-var timeUpClickCounting = false;
 
 //stores the position where the player must click
 var playerMustClickHere;
@@ -563,7 +562,7 @@ var processedUntilSequenceNumber = 0;
 //will be used for optimisation - so that the for loop doesn't need to loop through all stateChanges
 var currentArrayIndex = 0;
 
-
+//returns an array of the next stateChanges that need to be processed
 function getNextStateChanges() {
 	var stateChanges = [];
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
@@ -652,6 +651,8 @@ function processAnimations() {
 	}
 	
 }
+
+
 
 //this part is for getting around corners nicely
 var tStateChanges;
@@ -803,6 +804,7 @@ function animateStateChangesSimultaneously(stateChanges, board) {
 		tween.play();
 	}
 }
+
 
 //refreshes the board data but does not redraw it
 function refreshBoardData() {
