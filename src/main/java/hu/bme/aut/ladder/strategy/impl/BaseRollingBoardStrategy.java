@@ -172,9 +172,12 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
             }
         }
         
-        // If there is a snake at the end the board is not solvable
+        // If there is a snake at the end or a ladder at the beginning the board is not solvable
         for(TunnelEntity tunnel : board.getTunnels()){
             if(tunnel.getType() == TunnelEntity.Type.SNAKE && tunnel.getFromField() == size-1){
+                return false;
+            }
+            if(tunnel.getType() == TunnelEntity.Type.LADDER && tunnel.getFromField() == 0){
                 return false;
             }
         }

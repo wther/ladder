@@ -1,0 +1,11 @@
+{
+    "elements": {},
+    "attributes": {
+        "button-value": {
+            "context": "div"
+        },
+        "size-value": {
+            "context": "div"
+        }
+    }
+}
