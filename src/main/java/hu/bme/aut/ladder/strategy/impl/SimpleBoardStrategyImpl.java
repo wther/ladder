@@ -41,6 +41,6 @@ public class SimpleBoardStrategyImpl extends BaseRollingBoardStrategy {
         do {
             executeRollForOnePlayer(board, currentPlayer);
             currentPlayer = board.getNextPlayer();            
-        } while (board.getNextPlayer().getType() == PlayerEntity.Type.ROBOT);
+        } while (board.getNextPlayer().getType() == PlayerEntity.Type.ROBOT  && !currentPlayer.isFinishedPlaying());
     }
 }
