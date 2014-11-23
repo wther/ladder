@@ -19,6 +19,9 @@ var LADDER_SIZE_STEP = 80;
 
 var IMGSRC_SNAKE = '../images/snake_';
 
+var IMGSRC_WON = '../images/won.png';
+var IMGSRC_LOST = '../images/lost.png';
+
 var SNAKE_IMAGECOUNT = 2;
 var SNAKE_SIZE_STEP = 400;
 
@@ -50,6 +53,17 @@ var fieldRects;
 //js image objects
 var diceImages;
 
+//js image object
+var wonImage;
+
+//js image object
+var lostImage;
+
+//kinetic image
+var wonKin;
+
+//kinetic image
+var lostKin;
 
 //the player obj that is me of the boardData (not the kinetic image)
 function playerMe() {
@@ -59,6 +73,27 @@ function playerMe() {
 			return player;
 		}
 	}
+}
+
+//the player obj of the boardData that has the specified color
+function playerColoredAs(color) {
+	for(var i = 0; i < boardData.players.length; i++){
+		var player = boardData.players[i];
+		if(player.color === color) {
+			return player;
+		}
+	}
+}
+
+function playerName(color) {
+	var player = playerColoredAs(color);
+	var playerName = player.name;
+	if(player.color === playerMe().color) {
+		playerName = "You";
+	} else {
+		playerName = playerName + " (" + player.color.toLowerCase() + ")" ;
+	}
+	return playerName;
 }
 
 /**
@@ -252,6 +287,8 @@ function createSnakeImage(fromX, fromY, toX, toY) {
 var stage;
 var boardLayer;
 
+var gameEndLayer;
+
 /**
  * Draw board from scratch, it works based on the assumption that images are already loaded : player token, ladder (and snake) images
  */
@@ -364,6 +401,33 @@ function drawBoard(board) {
 		playerLayer.add(playerTokens[player.color]);
 	}
 	stage.add(playerLayer);
+	
+	gameEndLayer = new Kinetic.Layer();
+	var W = 500;
+	var H = 200;
+	wonKin = new Kinetic.Image({
+		x: SIZE / 2 - W / 2,
+		y: SIZE / 2 - H / 2,
+		image: wonImage,
+		width: W,
+		height: H,
+		visible: false
+	});
+	lostKin = new Kinetic.Image({
+		x: SIZE / 2 - W / 2,
+		y: SIZE / 2 - H / 2,
+		image: lostImage,
+		width: W,
+		height: H,
+		visible: false
+	});
+	gameEndLayer.add(wonKin);
+	gameEndLayer.add(lostKin);
+	
+	stage.add(gameEndLayer);
+	
+	drawGameEndLayer();
+	
     
     stage.getContent().addEventListener('click', stageClicked);
 }
@@ -372,7 +436,7 @@ function drawBoard(board) {
 function loadResources() {
 	playerImages = {};
 	var board = boardData;
-	var maxCount = board.players.length + LADDER_IMAGECOUNT + SNAKE_IMAGECOUNT;
+	var maxCount = board.players.length + LADDER_IMAGECOUNT + SNAKE_IMAGECOUNT + 2;
 	var loadCount = 0;
 	for(var i = 0; i < board.players.length; i++){
 		var player = board.players[i];
@@ -422,7 +486,23 @@ function loadResources() {
 		diceImages[i] = $('#dice_' + (i+1));
 	}
 	
+	wonImage = new Image();
+	wonImage.onload = function(ev) {
+		loadCount++;
+		if(loadCount == maxCount) {
+			resourcesLoaded();
+		}
+	};
+	wonImage.src = IMGSRC_WON;
 	
+	lostImage = new Image();
+	lostImage.onload = function(ev) {
+		loadCount++;
+		if(loadCount == maxCount) {
+			resourcesLoaded();
+		}
+	};
+	lostImage.src = IMGSRC_LOST;
 	
 }
 
@@ -442,8 +522,7 @@ function showDice(rollValue) {
 
 // earthquake ability used
 function earthquaked() {
-	$("#roll_button").attr("disabled", "disabled");
-	$("#earthquake_button").attr("disabled", "disabled");
+	
     safeProcessAnimations();
 }
 
@@ -452,15 +531,18 @@ var rollAnim;
 var justRolled = false;
 //dice is rolled, player has to click on correspondent field to advance
 function rolled() {
-
-	$("#roll_button").attr("disabled", "disabled");
-	$("#earthquake_button").attr("disabled", "disabled");
 	justRolled = true;
 	var stateChange = getNextStateChanges()[0];
 	if(playerMe().color === stateChange.playerColor) {
 		safeProcessAnimations();
 	}
 	
+}
+
+function actionBeforeProcess() {
+	$("#roll_button").addClass("disabled");
+	$("#earthquake_button").addClass("disabled", "disabled");
+	turnMessageShown = false;
 }
 
 
@@ -607,6 +689,8 @@ function processAnimations() {
 
 	if(stateChanges != null) {
 		if(stateChanges[0].causedBy === "EARTHQUAKE") {
+			var s = playerMe().color === stateChanges[0].playerColor ? "" : "s";
+			showText(playerName(stateChanges[0].playerColor) + " use" + s + " earthquake ability");
 			document.getElementById("sound_earthquake").play();
 		}
 		if(stateChanges.length == 1) {
@@ -616,10 +700,21 @@ function processAnimations() {
 			
 			if(rollMove) {
 				showDice(stateChange.to - stateChange.from);
+				
 				if(!animateFieldClicked) {
+					showText(playerName(stateChange.playerColor) + " rolled " + (stateChange.to - stateChange.from));
 					document.getElementById("sound_diceroll").play();
 				}
 			}
+			if(stateChange.causedBy === "LADDER") {
+				var s = playerMe().color === stateChange.playerColor ? "" : "s";
+				showText(playerName(stateChange.playerColor) + " climb" + s +" up from " + (stateChange.from+1) + " to " + (stateChange.to+1));
+			}
+			if(stateChange.causedBy === "SNAKE") {
+				var s = playerMe().color === stateChange.playerColor ? "" : "s";
+				showText(playerName(stateChange.playerColor) + " slide" + s  + " down from " + (stateChange.from+1) + " to " + (stateChange.to+1));
+			}
+			
 			//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
 			if(playerMe().color === stateChange.playerColor && justRolled) {
 				justRolled = false;
@@ -627,7 +722,7 @@ function processAnimations() {
 			}
 			else {
 				lastPlayerAnimated = stateChange.playerColor;
-				animateStateChange(stateChange, boardData, rollMove, processAnimations);
+				animateStateChange(stateChange, boardData, rollMove, postAnimationProcess);
 				processedUntilSequenceNumber = stateChange.sequenceNumber;
 			}
 		}
@@ -641,16 +736,21 @@ function processAnimations() {
 	else {
 		processing = false;
 		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
-			$("#roll_button").removeAttr("disabled");
-			
+			$("#roll_button").removeClass("disabled");
+			if(!turnMessageShown) {
+				showText("It's your turn!");
+				turnMessageShown = true;
+			}
 			if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
-				$("#earthquake_button").removeAttr("disabled");
+				$("#earthquake_button").removeClass("disabled");
 			}
 		}
 		
 	}
 	
 }
+
+var turnMessageShown = false;
 
 
 
@@ -675,16 +775,61 @@ function animateStateChangesSequentially(stateChanges, board, finishFunc) {
 	animateStateChangeVoid();
 }
 
-var winner = null;
+var winnerColor = null;
 var lastStateChange = null;
 function postAnimationProcess() {
-	if (lastStateChange.to === boardData.size - 1 && winner == null) {
-		winner = stateChange.playerColor;
-		if(playerMe().color === winner) {
-			document.getElementById("sound_finish").play();
+	if (lastStateChange.to === boardData.size - 1) {
+		var color = lastStateChange.playerColor;
+		var sil = "s";
+		if(playerMe().color === color) {
+			sil = "ve";
+		}
+		
+		var wonFinished;
+		if (drawGameEndLayer()) {
+			wonFinished = " won!";
+			document.getElementById("sound_won").play();
+		}
+		else {
+			wonFinished = " finished!";
+		}
+		showText(playerName(lastStateChange.playerColor) + " ha" + sil + wonFinished);
+	} 
+	processAnimations();
+}
+
+
+//returns true if I (playerMe()) have won, and draws appropriately
+function drawGameEndLayer() {
+	var players = boardData.players;
+	var meWon = false;
+	for(var i = 0; i < players.length; i++) {
+		var player = players[i];
+		if(player.finishedAtPlace == 1) {
+			var kinImage = lostKin;
+			
+			meWon = (playerMe().color === player.color)
+			if(meWon) {
+				kinImage = wonKin;
+			}
+			kinImage.show();
+			gameEndLayer.draw();
+			setTimeout(function() {
+				var tween = new Kinetic.Tween({
+					  node: kinImage,
+					  opacity: 0.5,
+					  duration: 3,
+					  easing: Kinetic.Easings.BackEaseIn
+				});
+				tween.play();
+			}, 3000);
+			if(meWon) {
+				return true;
+			}
+			
 		}
 	}
-	processAnimations();
+	return false;
 }
 
 //rollMove indicates if the move is not a ladder/snake movement and so
@@ -805,6 +950,12 @@ function animateStateChangesSimultaneously(stateChanges, board) {
 	}
 }
 
+var lastLine = "";
+function showText(text) {
+	$("#gameText").html(lastLine + "<br/>"+ text);
+	lastLine = text;
+}
+
 
 //refreshes the board data but does not redraw it
 function refreshBoardData() {
@@ -832,6 +983,9 @@ function refreshBoard() {
 }
 
 $('#roll_button').click(function(){
+	if($("#roll_button").hasClass("disabled")) {
+		return;
+	}
     $.ajax({
         url: 'board/action',
         data: {action: 'ROLL'},
@@ -840,6 +994,7 @@ $('#roll_button').click(function(){
 //            drawBoard(data);
 //            processAnimations();
         	boardData = data;
+        	actionBeforeProcess();
         	rolled();
         	
         }
@@ -847,6 +1002,9 @@ $('#roll_button').click(function(){
 });
 
 $('#earthquake_button').click(function(){
+	if($("#earthquake_button").hasClass("disabled")) {
+		return;
+	}
     $.ajax({
         url: 'board/action',
         data: {action: 'EARTHQUAKE'},
@@ -855,9 +1013,21 @@ $('#earthquake_button').click(function(){
             //@TODO refactor
         	
             boardData = data;
+            actionBeforeProcess();
             earthquaked();
         }
     });
+});
+
+$('#leave_button').click(function() {
+    $.ajax({
+        method: "DELETE",
+        url: "game/leave",
+        success: function () {
+            document.location = "lobby.html";
+        }
+    });
+	
 });
 
 refreshBoard();
