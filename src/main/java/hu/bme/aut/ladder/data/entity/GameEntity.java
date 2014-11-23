@@ -125,21 +125,6 @@ public class GameEntity {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final GameEntity other = (GameEntity) obj;
-        if (!Objects.equals(this.gameId, other.gameId)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
         return "GameEntity{" + "gameId=" + gameId + ", created=" + created + ", gameState=" + gameState + ", host=" + host + '}';
     }

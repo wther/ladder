@@ -131,28 +131,6 @@ public class PlayerEntity {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 89 * hash + Objects.hashCode(this.playerId);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final PlayerEntity other = (PlayerEntity) obj;
-        if (!Objects.equals(this.playerId, other.playerId)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
         return "PlayerEntity{" + "playerId=" + playerId + ", position=" + position + ", type=" + type + ", color=" + color + ", name=" + name + '}';
     }

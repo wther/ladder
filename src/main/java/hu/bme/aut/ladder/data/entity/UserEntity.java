@@ -113,26 +113,4 @@ public class UserEntity {
     public String toString() {
         return "UserEntity{" + "userId=" + userId + ", sessionId=" + sessionId + ", name=" + name + '}';
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 59 * hash + Objects.hashCode(this.userId);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final UserEntity other = (UserEntity) obj;
-        if (!Objects.equals(this.userId, other.userId)) {
-            return false;
-        }
-        return true;
-    }
 }
