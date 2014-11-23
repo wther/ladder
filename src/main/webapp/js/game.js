@@ -108,11 +108,19 @@ function getTokenDim(position, i, boardSize) {
 	};
 }
 
-function fieldToVectorPos(field, boardSize) {
+function boardWidth(boardSize) {
+	if(boardSize === undefined) {
+		boardSize = boardData.size;
+	}
 	var width = parseInt(Math.sqrt(boardSize));
     if(width*width !== boardSize){
         throw "Unexpected board size: " + boardSize;
     }
+    return width;
+}
+
+function fieldToVectorPos(field, boardSize) {
+	var width = boardWidth(boardSize);
     
     var y = width - 1 - Math.floor(field / width);
     
@@ -161,8 +169,7 @@ function fieldToPixels(field, boardSize, pixelSize, padding) {
 // the inverse of fieldToPixels for event handling
 function pixelToField(x, y) {
 	console.log("x, y: " + x + ", " + y);
-	var boardSize = boardData.size;
-	var width = parseInt(Math.sqrt(boardSize));
+	var width = boardWidth();
 	var pixelSize = SIZE;
 	//var padding = 0.06;
 	
@@ -434,6 +441,7 @@ var justRolled = false;
 function rolled() {
 
 	$("#roll_button").attr("disabled", "disabled");
+	$("#earthquake_button").attr("disabled", "disabled");
 	justRolled = true;
 	var stateChange = getNextStateChanges()[0];
 	if(playerMe().color === stateChange.playerColor) {
@@ -565,6 +573,9 @@ function processAnimations() {
 	
 
 	if(stateChanges != null) {
+		if(stateChanges[0].causedBy === "EARTHQUAKE") {
+			document.getElementById("sound_earthquake").play();
+		}
 		if(stateChanges.length == 1) {
 			var stateChange = stateChanges[0];
 			//if this was a dice roll, then show the dice
@@ -587,7 +598,7 @@ function processAnimations() {
 				processedUntilSequenceNumber = stateChange.sequenceNumber;
 			}
 		}
-		//earthquake - if there are more than one stateChanges with the same sequenceNumber
+		//earthquake with multiple players moved - if there are more than one stateChanges with the same sequenceNumber
 		else {
 			animateStateChangesSimultaneously(stateChanges, boardData);
 			processedUntilSequenceNumber = stateChanges[0].sequenceNumber;
@@ -598,6 +609,7 @@ function processAnimations() {
 		processing = false;
 		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
 			$("#roll_button").removeAttr("disabled");
+			$("#earthquake_button").removeAttr("disabled");
 		}
 		
 	}
@@ -652,10 +664,11 @@ function animateStateChange(stateChange, board, rollMove, finishFunc) {
 	if(rollMove) {
 		var Pos1 = fieldToVectorPos(stateChange.from, board.size);
 		var Pos2 = fieldToVectorPos(stateChange.to, board.size);
+		var width = Pos1.W;
 		//passing a corner
 		if(Pos1.Y != Pos2.Y) {
 			var stateChanges = [];
-			var cornerField1 = stateChange.from + (9 - (stateChange.from % 10));
+			var cornerField1 = stateChange.from + (width - 1 - (stateChange.from % width));
 			var cornerField2 = cornerField1 + 1;
 			if(stateChange.from != cornerField1) {
 				stateChanges.push({
@@ -694,7 +707,7 @@ function animateStateChange(stateChange, board, rollMove, finishFunc) {
 	playerToAnimate.show();
 	
 	var dist = getDistance(fromDim.X, fromDim.Y, toDim.X, toDim.Y);
-	dist /= SIZE/10;
+	dist /= SIZE / boardWidth(board.size);
 	console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
 	
 	var tween = new Kinetic.Tween({
@@ -733,7 +746,7 @@ function animateStateChangesSimultaneously(stateChanges, board) {
 		playerToAnimate.show();
 		
 		var dist = getDistance(fromDim.X, fromDim.Y, toDim.X, toDim.Y);
-		dist /= SIZE/10;
+		dist /= SIZE / boardWidth(board.size);
 		console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
 		
 		var tween = new Kinetic.Tween({
