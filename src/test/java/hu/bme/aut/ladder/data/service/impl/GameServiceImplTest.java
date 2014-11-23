@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.data.service.impl;
 
 import hu.bme.aut.ladder.BaseIntegrationTest;
+import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.entity.AbilityEntity.Ability;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
@@ -51,10 +52,15 @@ public class GameServiceImplTest extends BaseIntegrationTest {
     }    
     
     /**
-     * Test that when creating a new game the number robots is set to <i>0</i>
+     * Test that when creating a new game:
+     * <ul>
+     *  <li>The number robots is set to <i>0</i></li>
+     *  <li>The number of snakes is 5 and the number of ladders is 5</li>
+     *  <li>The size of the board is 100</li>
+     * </ul>
      */
     @Test
-    public void thatGameStartedHasNoRobotsByDefault() throws GameActionNotAllowedException{
+    public void thatGameStartedHasDefaultParams() throws GameActionNotAllowedException{
      
         // Arrange
         UserEntity user = new UserEntity();
@@ -66,6 +72,9 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         
         // Assert
         assertEquals(0, game.getNumberOfRobots());
+        assertEquals(100, game.getBoardSize());
+        assertEquals(5, game.getNumberOfSnakes());
+        assertEquals(5, game.getNumberOfLadders());
     }   
     
     /**
@@ -169,6 +178,35 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         assertNotEquals("Players should have different colors", 
                 game.getBoard().getPlayers().get(0).getColor(),
                 game.getBoard().getPlayers().get(1).getColor());
+    }
+    
+    /**
+     * Try to start a game with double the snakes, half the ladders and 12x12 size
+     */
+    @Test
+    public void thatGameCanBeStartedWithDifferentParams() throws GameActionNotAllowedException{
+        
+        // Arrange
+        UserEntity user = new UserEntity();
+        user.setName("Test");
+        userRepository.save(user);
+        
+        GameEntity game = target.intializeGame(user);
+        
+        // Prepare new params
+        GameParamsDTO params = new GameParamsDTO();
+        params.setLadders(2);
+        params.setSnakes(10);
+        params.setRobots(1);
+        params.setSize(12*12);
+        
+        // Act
+        target.setGameParams(game, params);
+        target.startGame(game);
+        
+        // Assert
+        assertEquals("Board size should be 12x12", 12*12, game.getBoard().getBoardSize());
+        assertEquals("Board size should have 10 snakes and 2 ladders", 10+2, game.getBoard().getTunnels().size());
     }
     
     /**
