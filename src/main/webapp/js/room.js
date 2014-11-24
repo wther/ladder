@@ -46,12 +46,14 @@ function RefreshReadyIndicator(){
         url: 'user/details',
         success: function(data){
             if(data.ready){
+                $('#start').unbind();
                 $('#start').html('WAIT PLS');
                 $('#start').click(function(){
                     IndicateReady(false);
                 });
             } else {
                 $('#start').html('READY');
+                $('#start').unbind();
                 $('#start').click(function(){
                     IndicateReady(true);
                 });
@@ -128,10 +130,11 @@ function RefreshPlayers(){
                 // Can't start game, but can only indicate that one is ready
                 RefreshReadyIndicator();
             } else {
-                $('#start').unbind('click');
+                $('#start').unbind();
                 $('#start').click(Start);
                 
                 for(var field in paramMapping){
+                    $('#' + paramMapping[field] + ' div.button').unbind();
                     $('#' + paramMapping[field] + ' div.button').click(function(){
                         $(this).parent().children().removeClass('button-selected');
                         $(this).addClass('button-selected');
