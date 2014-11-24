@@ -23,6 +23,16 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
     protected Dice dice = new SimpleDiceImpl();
     
     /**
+     * Cause string for rolling
+     */
+    protected static final String ROLL_CAUSE = "ROLL";
+    
+    /**
+     * Cause for rolling the 3rd size
+     */
+    protected static final String PENALTY_CAUSE = "PENALTY";
+    
+    /**
      * Helper function to be ran from {@link BoardStrategy#executeAction} implementations
      */
     protected void verifyThatPlayerCanTakeATurn(BoardEntity board, PlayerEntity player) throws BoardActionNotPermitted {
@@ -68,7 +78,7 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
         for(; turn < 2; turn++){
         
             final int diceRolled = dice.getNext();
-            executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled);
+            executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled, ROLL_CAUSE);
             
             if(diceRolled != Dice.DICE_LIMIT){
                 break;
@@ -81,9 +91,9 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
 
             // If this is 6, then throw him back to 1
             if(diceRolled == Dice.DICE_LIMIT){
-                executeSingleRollForOnePlayer(board, player, 0);
+                executeSingleRollForOnePlayer(board, player, 0, PENALTY_CAUSE);
             } else {
-                executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled);
+                executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled, ROLL_CAUSE);
             }
         }
              
@@ -109,12 +119,12 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
      * Executes an action for a single player, human/robot the same. Doesn't move any other player
      * @returns The dice rolled, e.g. 5
      */
-    private void executeSingleRollForOnePlayer(BoardEntity board, PlayerEntity player, int toPosition) throws BoardActionNotPermitted {
+    private void executeSingleRollForOnePlayer(BoardEntity board, PlayerEntity player, int toPosition, String causeName) throws BoardActionNotPermitted {
                 
         // Determine new sequence number of action
         int sequenceNumber = getNextAvailableSequenceNumber(board);
         
-        movePlayerRecursively(board, player, toPosition, sequenceNumber, "ROLL");
+        movePlayerRecursively(board, player, toPosition, sequenceNumber, causeName);
         
         // Did this player finish?
         if(player.getPosition() >= board.getBoardSize()-1){

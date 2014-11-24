@@ -311,5 +311,6 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         // Assert
         assertEquals("Next player should've rolled three times", 3, board.getStateChanges().size()); 
         assertEquals("Next player should've rolled twice", 0, board.getPlayers().get(0).getPosition()); 
+        assertEquals("Last role should be special", "PENALTY", board.getStateChanges().get(2).getCausedBy()); 
     }
 }
