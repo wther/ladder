@@ -1,5 +1,6 @@
 package hu.bme.aut.ladder.data.service.impl;
 
+import hu.bme.aut.ladder.controller.BoardController;
 import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.builder.BoardBuilder;
 import hu.bme.aut.ladder.data.entity.AbilityEntity;
@@ -13,6 +14,7 @@ import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
+import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.apache.commons.lang.time.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,11 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 public class GameServiceImpl implements GameService {
+    
+    /**
+     * Class logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameServiceImpl.class);
     
     /**
      * Repository of games
@@ -224,7 +233,7 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void leave(UserEntity user) {
+    public void leave(UserEntity user) throws GameActionNotAllowedException {
         
         if(user.getGame() == null){
             // Do nothing
@@ -257,6 +266,16 @@ public class GameServiceImpl implements GameService {
             
             // Replace user with robot
             user.getPlayer().setType(PlayerEntity.Type.ROBOT);
+            
+            // Was this player on turn? In that case we have to resolve,
+            // the board, by forcing the robot of this player to take a turn
+            if(game.getBoard().getNextPlayer().equals(user.getPlayer())){
+                try {
+                    boardStrategy.resolveBoard(game.getBoard());
+                } catch (BoardActionNotPermitted ex) {
+                    throw new GameActionNotAllowedException("Couldn't leave the game", ex);
+                }
+            }
             
             // Detach user from game
             user.setPlayer(null);
@@ -319,5 +338,38 @@ public class GameServiceImpl implements GameService {
         game.setNumberOfLadders(params.getLadders());
         
         repository.save(game);
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @param game 
+     */
+    @Override
+    public void handleNotResponsiveUsers(GameEntity game) throws GameActionNotAllowedException {
+        if(game == null){
+            throw new IllegalArgumentException("game is null");
+        }
+        
+        if(game.getGameState() != GameEntity.GameState.BOARD_STARTED){
+            // Do nothing
+            return;
+        }
+        
+        final int numberOfMinutesBeforeKickoff = 1;
+        
+        // If next player should've done something for a long time, kick him off
+        final java.util.Date lastAction = game.getBoard().getNextPlayerAssignedAt();
+        if(lastAction != null && lastAction.before(DateUtils.addMinutes(new Date(), -numberOfMinutesBeforeKickoff))){
+            for(UserEntity user : userRepository.findByGame(game)){
+                // If this is the inactive player
+                if(user.getPlayer().equals(game.getBoard().getNextPlayer())){
+                    
+                    LOGGER.info("Kicking off {} from {}'s game because it hasn't been responding since {}", user.getName(), game.getHost().getName(), lastAction);
+                    leave(user);
+                    return;
+                }
+            }
+        }
     }
 }

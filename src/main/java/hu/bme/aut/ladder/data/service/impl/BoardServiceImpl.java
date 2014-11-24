@@ -57,7 +57,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public void executeAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted {
         
-        strategy.executeAction(board, player, action);
+        strategy.executePlayerAction(board, player, action);
         repository.save(board);
     }
 }

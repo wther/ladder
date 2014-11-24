@@ -4,6 +4,8 @@ import hu.bme.aut.ladder.controller.dto.BoardDTO;
 import static hu.bme.aut.ladder.data.entity.GameEntity.GameState.BOARD_STARTED;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.BoardService;
+import hu.bme.aut.ladder.data.service.GameService;
+import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,16 +49,29 @@ public class BoardController extends BaseGameController {
      */
     @Autowired
     private BoardService boardService;
+    
+    /**
+     * Game service used to manage the game
+     */
+    @Autowired
+    private GameService gameService;
 
     /**
      * Controller to request the current state of the board
      */
     @RequestMapping(value = BOARD_DETAILS_URI, method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<BoardDTO> board(HttpServletRequest request) {
+    public @ResponseBody ResponseEntity<BoardDTO> board(HttpServletRequest request) throws GameActionNotAllowedException {
         final UserEntity user = findAndVerifyUserEntity(request);
         if (user == null) {
             return new ResponseEntity<BoardDTO>(HttpStatus.BAD_REQUEST);
         }
+        
+        if(user.getGame() == null || user.getGame().getBoard() == null){
+            return new ResponseEntity<BoardDTO>(HttpStatus.NOT_FOUND);
+        }
+        
+        // Kick off any not responsive users
+        gameService.handleNotResponsiveUsers(user.getGame());
 
         LOGGER.debug("Sending DTO for board: {}", user.getGame().getBoard());
         

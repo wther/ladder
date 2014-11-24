@@ -77,7 +77,7 @@ public class RoomController extends BaseGameController {
      * @param request
      */
     @RequestMapping(value = LEAVE_GAME_URI, method = RequestMethod.DELETE)
-    public @ResponseBody ResponseEntity<String> leave(HttpServletRequest request) {
+    public @ResponseBody ResponseEntity<String> leave(HttpServletRequest request) throws GameActionNotAllowedException {
         
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         LOGGER.info("{} is leaving {}", user, user.getGame());

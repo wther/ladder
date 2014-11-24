@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.data.entity;
 
 import hu.bme.aut.ladder.DataConfig;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,6 +14,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  * Entity for boards.
@@ -61,6 +64,14 @@ public class BoardEntity {
      */
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     private PlayerEntity nextPlayer;
+    
+    /**
+     * Date indicating when that next player was assigned, so we can calculate
+     * the amount of time we have been waiting for this player
+     */
+    @Column
+    @Temporal(TemporalType.TIMESTAMP)
+    private java.util.Date nextPlayerAssignedAt;
     
     /**
      * Player state changes on board, e.g. moves
@@ -115,6 +126,14 @@ public class BoardEntity {
 
     public void setNextPlayer(PlayerEntity nextPlayer) {
         this.nextPlayer = nextPlayer;
+    }
+
+    public Date getNextPlayerAssignedAt() {
+        return nextPlayerAssignedAt;
+    }
+
+    public void setNextPlayerAssignedAt(Date nextPlayerAssignedAt) {
+        this.nextPlayerAssignedAt = nextPlayerAssignedAt;
     }
 
     @Override

@@ -14,6 +14,11 @@ import java.util.List;
 public interface BoardStrategy {
     
     /**
+     * Generate robot moves until the next player becomes a player
+     */
+    void resolveBoard(BoardEntity board) throws BoardActionNotPermitted;
+    
+    /**
      * Execute action 
      * 
      * @param board Board to modify
@@ -22,7 +27,7 @@ public interface BoardStrategy {
      * 
      * @throws hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted
      */
-    void executeAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted;
+    void executePlayerAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted;
     
     /**
      * Determine whether or a not a given board is always solvable using this strategy

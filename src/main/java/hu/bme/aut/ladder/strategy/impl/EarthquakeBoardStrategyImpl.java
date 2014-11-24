@@ -21,7 +21,7 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
      * {@inheritDoc 
      */
     @Override
-    public void executeAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted {
+    public void executePlayerAction(BoardEntity board, PlayerEntity player, String action) throws BoardActionNotPermitted {
         // If next player is not set let that be the player
         if(board.getNextPlayer() == null){
             board.setNextPlayer(player);

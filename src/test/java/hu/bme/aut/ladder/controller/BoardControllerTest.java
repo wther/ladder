@@ -6,6 +6,7 @@ import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.repository.GameRepository;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang.time.DateUtils;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -129,6 +130,26 @@ public class BoardControllerTest extends BaseControllerTest {
             .andExpect(jsonPath("$.players[0].isFinished", is(true)))
             .andExpect(jsonPath("$.players[0].finishedAtPlace", is(1)))
             .andExpect(status().is(HttpStatus.OK.value()));
+    }
+    
+    /**
+     * Tests that if the player closes their browser, they are kicked off
+     */
+    @Test
+    public void thatInresponsivePlayerIsKickedOff() throws Exception {
+        
+        // Arrange
+        List<MockHttpSession> sessions = startGame();
+        
+        // Make the first player inresponsive for one hour
+        GameEntity game = repository.findAll().get(0);
+        game.getBoard().setNextPlayerAssignedAt(DateUtils.addHours(new java.util.Date(), -1));
+        repository.save(game);
+        
+        // Act
+        mockMvc
+            .perform(get(BoardController.BOARD_DETAILS_URI).session(sessions.get(1)))
+            .andExpect(jsonPath("$.nextPlayer.color", is(game.getBoard().getPlayers().get(1).getColor().name())));
     }
     
     /**

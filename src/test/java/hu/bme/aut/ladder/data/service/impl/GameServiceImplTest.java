@@ -336,4 +336,33 @@ public class GameServiceImplTest extends BaseIntegrationTest {
         target.join(game.getGameId(), guest);
         target.startGame(game);        
     }
+    
+    /**
+     * Test that game isn't left hanging when a user leaves when it's his turn
+     * 
+     * @throws GameActionNotAllowedException 
+     */
+    @Test
+    public void thatIfUserLeavesWhenOnTurnStrategyTakesATurnInstead() throws GameActionNotAllowedException {
+     
+        // Arrange
+        UserEntity userOnTurn = new UserEntity();
+        userOnTurn.setName("First");
+        userRepository.save(userOnTurn);
+        
+        UserEntity nextUser = new UserEntity();
+        nextUser.setName("Second");
+        nextUser.setReady(Boolean.TRUE);
+        userRepository.save(nextUser);
+        
+        GameEntity game = target.intializeGame(userOnTurn);
+        
+        // Act
+        target.join(game.getGameId(), nextUser);
+        target.startGame(game); 
+        target.leave(userOnTurn);
+        
+        // Assert
+        assertEquals("Game should've moved on to the nextUser", nextUser.getPlayer(), game.getBoard().getNextPlayer());        
+    }
 }

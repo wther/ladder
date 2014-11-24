@@ -24,6 +24,24 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
      */
     protected Dice dice = new SimpleDiceImpl();
     
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void resolveBoard(BoardEntity board) throws BoardActionNotPermitted {
+        
+        if(board == null){
+            throw new IllegalArgumentException("board is null");
+        }
+        
+        // Move the next player and any number of robot players
+        // after him until a human player is reached
+        while (board.getNextPlayer().getType() == PlayerEntity.Type.ROBOT  && !board.getNextPlayer().isFinishedPlaying()) {
+            executeRollForOnePlayer(board, board.getNextPlayer());
+        }
+    }
+    
     /**
      * Cause string for rolling
      */
@@ -112,6 +130,7 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
             final PlayerEntity nextPlayer = board.getPlayers().get((i+j) % board.getPlayers().size());
             if(!nextPlayer.isFinishedPlaying()){
                 board.setNextPlayer(nextPlayer);
+                board.setNextPlayerAssignedAt(new java.util.Date());
                 break;
             }
         }
