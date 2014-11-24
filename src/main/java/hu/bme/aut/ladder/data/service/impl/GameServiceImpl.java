@@ -361,7 +361,15 @@ public class GameServiceImpl implements GameService {
         // If next player should've done something for a long time, kick him off
         final java.util.Date lastAction = game.getBoard().getNextPlayerAssignedAt();
         if(lastAction != null && lastAction.before(DateUtils.addMinutes(new Date(), -numberOfMinutesBeforeKickoff))){
-            for(UserEntity user : userRepository.findByGame(game)){
+            final List<UserEntity> usersInGame = userRepository.findByGame(game);
+            
+            // If there is only one human player, let him be idle for as long as he wishes
+            if(usersInGame.size() == 1){
+                // Do nothing
+                return;
+            }
+            
+            for(UserEntity user : usersInGame){
                 // If this is the inactive player
                 if(user.getPlayer().equals(game.getBoard().getNextPlayer())){
                     
