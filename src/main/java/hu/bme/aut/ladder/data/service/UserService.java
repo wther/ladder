@@ -1,6 +1,7 @@
 package hu.bme.aut.ladder.data.service;
 
 import hu.bme.aut.ladder.data.entity.UserEntity;
+import hu.bme.aut.ladder.data.service.exception.UserActionNotAllowedException;
 import java.util.List;
 
 /**
@@ -42,7 +43,7 @@ public interface UserService {
     /**
      * Set the name for a user
      */
-    void setNameForUser(UserEntity user, String newName);
+    void setNameForUser(UserEntity user, String newName) throws UserActionNotAllowedException;
     
     /**
      * Set the value indicating that user is ready or not for a game to start

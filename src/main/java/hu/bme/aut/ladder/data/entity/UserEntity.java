@@ -40,7 +40,7 @@ public class UserEntity {
     /**
      * Name of user, e.g. <i>John</i>
      */
-    @Column
+    @Column(unique = true)
     private String name;
     
     /**
