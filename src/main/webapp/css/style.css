@@ -1,9 +1,10 @@
 div#container {
 	background-color: #eeeeee;
 	text-align: center;
+        word-spacing: normal;
+        letter-spacing: normal;
+        width: 600px;
 }
-
-
 
 #gameDiv {
 	margin-left: 50px;
