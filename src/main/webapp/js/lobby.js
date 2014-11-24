@@ -65,6 +65,7 @@ function RefreshRooms() {
                 var tr = $('<tr>')
                         .addClass('roomRow')
                         .attr('roomId', data[i].gameId)
+                        .unbind()
                         .click(function () {
                             RoomClicked(this);
                         });
