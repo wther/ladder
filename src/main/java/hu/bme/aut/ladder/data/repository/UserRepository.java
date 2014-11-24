@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Barnabas
  */
 public interface UserRepository extends JpaRepository<UserEntity, Long>{
- 
+    
     /**
      * Find user associated with session id 
      * @param sessionId
@@ -25,4 +25,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>{
      * @return 
      */
     List<UserEntity> findByGame(GameEntity game);
+    
+    /**
+     * Find user by its unique name
+     * 
+     * @param name
+     * @return 
+     */
+    UserEntity findByNameIgnoreCase(String name);
 }

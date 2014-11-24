@@ -4,9 +4,11 @@ import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.repository.UserRepository;
 import hu.bme.aut.ladder.data.service.UserService;
+import hu.bme.aut.ladder.data.service.exception.UserActionNotAllowedException;
 import java.util.List;
 import java.util.Random;
 import javax.transaction.Transactional;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,17 @@ public class UserServiceImpl implements UserService {
             user.setSessionId(sessionId);
             
             Random random = new Random();
-            user.setName("Anonymous" + random.nextInt(100));
+            
+            // Make sure that user receives a unique name
+            for(int i = 0; i < 200; i++){
+                final String name = "Anonymous" + random.nextInt(100 + i);
+            
+                if(userRepository.findByNameIgnoreCase(name) == null){
+                    user.setName(name);
+                    break;
+                }
+            }
+            
             userRepository.save(user);
             return user;
         } else {
@@ -50,7 +62,23 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     @Override
-    public void setNameForUser(UserEntity user, String newName) {
+    public void setNameForUser(UserEntity user, String newName) throws UserActionNotAllowedException {
+        
+        if(StringUtils.isEmpty(newName)){
+            throw new UserActionNotAllowedException("Empty name is not allowed for user");
+        }
+        
+        final int lengthLimit = 25;        
+        if(newName.length() > lengthLimit){
+            throw new UserActionNotAllowedException("User name longer than " + lengthLimit + " is not allowed");
+        }
+        
+        // Is this name taken?
+        final UserEntity userInDb = userRepository.findByNameIgnoreCase(newName);
+        if(userInDb != null && !userInDb.equals(user)){
+            throw new UserActionNotAllowedException("Sorry, this name is already taken.");
+        }
+        
         user.setName(newName);
         userRepository.save(user);
     }

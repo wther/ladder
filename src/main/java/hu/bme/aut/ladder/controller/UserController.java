@@ -3,6 +3,7 @@ package hu.bme.aut.ladder.controller;
 import hu.bme.aut.ladder.controller.dto.UserDTO;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.UserService;
+import hu.bme.aut.ladder.data.service.exception.UserActionNotAllowedException;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -82,7 +84,7 @@ public class UserController {
      * Set user's name
      */
     @RequestMapping(value = UPDATE_NAME, method = RequestMethod.POST)
-    public ResponseEntity<String> updateName(HttpServletRequest request, @RequestParam String name) {
+    public ResponseEntity<String> updateName(HttpServletRequest request, @RequestParam String name) throws UserActionNotAllowedException {
         final UserEntity user = userService.findOrCreateUser(request.getSession().getId());
         LOGGER.info("{} is attempting to change name value to {}", user, name);
         userService.setNameForUser(user, name);
@@ -98,5 +100,15 @@ public class UserController {
         LOGGER.info("{} is attempting to change ready value to {}", user, ready);
         userService.setUserReady(user, ready);
         return new ResponseEntity<String>(HttpStatus.OK);
+    }
+
+    /**
+     * Error handler which reports the problem to the client
+     * @param exception 
+     */
+    @ExceptionHandler(UserActionNotAllowedException.class)
+    public ResponseEntity<String> handleException(UserActionNotAllowedException exception){
+        LOGGER.warn("Request failed", exception);
+        return new ResponseEntity<String>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
