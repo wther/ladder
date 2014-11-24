@@ -35,7 +35,7 @@ public interface GameService {
      * 
      * @param user
      */
-    void leave(UserEntity user);
+    void leave(UserEntity user) throws GameActionNotAllowedException;
     
     /**
      * Actually start the game, setup board and let the fun begin
@@ -73,4 +73,10 @@ public interface GameService {
      * @return 
      */
     List<UserEntity> findUsersInGame(GameEntity game);    
+    
+    /**
+     * Remove not responsive users from the game
+     * @param game 
+     */
+    void handleNotResponsiveUsers(GameEntity game) throws GameActionNotAllowedException;
 }

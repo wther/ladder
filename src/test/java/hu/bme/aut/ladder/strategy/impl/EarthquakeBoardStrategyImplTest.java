@@ -33,7 +33,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
 
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals(1, board.getStateChanges().size());
@@ -58,7 +58,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         }
                 
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "EARTHQUAKE");
+        target.executePlayerAction(board, board.getPlayers().get(0), "EARTHQUAKE");
         
         // Assert
         assertEquals("Every player should be moved", board.getPlayers().size(), board.getStateChanges().size());
@@ -93,7 +93,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         }
                 
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "EARTHQUAKE");
+        target.executePlayerAction(board, board.getPlayers().get(0), "EARTHQUAKE");
         
         // Assert
         assertEquals("Every player should be moved", board.getPlayers().size(), board.getStateChanges().size());
@@ -116,7 +116,7 @@ public class EarthquakeBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         setMockAbilityEarthquake(board);
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "EARTHQUAKE");
+        target.executePlayerAction(board, board.getPlayers().get(0), "EARTHQUAKE");
         
         // Abilities uses should be adjusted
         assertEquals("Player who uses should be adjusted", 1, board.getPlayers().get(0).getAbilities().get(0).getUsesLeft());

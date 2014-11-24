@@ -12,4 +12,8 @@ public class GameActionNotAllowedException extends Exception {
     public GameActionNotAllowedException(String message){
         super(message);
     }    
+    
+    public GameActionNotAllowedException(String message, Throwable t){
+        super(message, t);
+    }
 }

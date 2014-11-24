@@ -43,7 +43,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
 
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals(1, board.getStateChanges().size());
@@ -70,7 +70,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.setTunnels(Arrays.asList(ladder));
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals(2, board.getStateChanges().size());
@@ -97,7 +97,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.setTunnels(Arrays.asList(snake));
         
          // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals(2, board.getStateChanges().size());
@@ -132,7 +132,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         }
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
      
         // Assert
         assertEquals("Expected all ladders and snakes to be in effect", positions.length, board.getStateChanges().size());
@@ -154,7 +154,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         BoardEntity board = mockBoard(2);
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals("Next player should be set to the player after 0", board.getPlayers().get(1), board.getNextPlayer());        
@@ -174,7 +174,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.setNextPlayer(board.getPlayers().get(numberOfPlayers-1));
         
         // Act
-        target.executeAction(board, board.getPlayers().get(numberOfPlayers-1), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(numberOfPlayers-1), "ROLL");
         
         // Assert
         assertEquals("First player should be on turn", board.getPlayers().get(0), board.getNextPlayer());        
@@ -192,7 +192,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.setNextPlayer(board.getPlayers().get(numberOfPlayers-1));
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
     }
     
     /**
@@ -209,7 +209,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.getPlayers().get(1).setType(PlayerEntity.Type.ROBOT);
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals("Third player should be next", board.getPlayers().get(2), board.getNextPlayer());
@@ -235,7 +235,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.getPlayers().get(0).setPosition(playerStartsFrom);
                 
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
      
         // Assert
         final PlayerEntity player = board.getPlayers().get(0);
@@ -265,7 +265,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         board.getPlayers().get(0).setFinishedAtPlace(1);
                 
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
     }
     
     /**
@@ -283,7 +283,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         target.setDice(dice);
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals("Next player should've rolled twice", 2, board.getStateChanges().size()); 
@@ -306,7 +306,7 @@ public class SimpleBoardStrategyImplTest extends BaseBoardStrategyImplTest {
         target.setDice(dice);
         
         // Act
-        target.executeAction(board, board.getPlayers().get(0), "ROLL");
+        target.executePlayerAction(board, board.getPlayers().get(0), "ROLL");
         
         // Assert
         assertEquals("Next player should've rolled three times", 3, board.getStateChanges().size()); 
