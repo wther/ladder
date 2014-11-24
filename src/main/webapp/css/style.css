@@ -3,8 +3,55 @@ div#container {
 	text-align: center;
 }
 
-#rollDiv {
-	
+
+
+#gameDiv {
+	margin-left: 50px;
+	position: relative;
+	width: 800px;
+}
+
+#buttonRow {
+	display: flex;
+    margin-top:10px;
+    width: 600px;
+    margin-bottom:20px;
+}
+
+#roll_button {
+	flex: 2;
+}
+
+#spaceDiv1 {
+	width: 150px;
+}
+
+#earthquake_button {
+	flex: 2;
+}
+
+#buttonRowBottom {
+    margin-top:20px;
+    width: 800px;
+    margin-bottom:10px;
+    position: relative;
+}
+
+#leave_button {
+	float:left;
+}
+
+#gameText {
+	width: 500px;
+	text-align: justify;
+	margin-left: 180px;
+	vertical-align: middle;
+	font-size: 25px;
+}
+
+#diceDiv {
+	width: 150;
+	float: right;
 }
 
 img.diceImage {
