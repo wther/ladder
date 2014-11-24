@@ -100,13 +100,13 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
             final int diceRolled = dice.getNext();
             executeSingleRollForOnePlayer(board, player, player.getPosition() + diceRolled, ROLL_CAUSE);
             
-            if(diceRolled != Dice.DICE_LIMIT){
+            if(diceRolled != Dice.DICE_LIMIT || player.isFinishedPlaying()){
                 break;
             }
         }
         
         // If player has rolled 6 twice, let him roll once again
-        if(turn == 2){
+        if(turn == 2 && !player.isFinishedPlaying()){
             final int diceRolled = dice.getNext();
 
             // If this is 6, then throw him back to 1

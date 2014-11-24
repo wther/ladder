@@ -665,6 +665,7 @@ function getNextStateChanges() {
 				}
 			}
 			
+			console.log("getNext : " + stateChanges.length);
 			return stateChanges;
 		}
 	}
@@ -798,9 +799,13 @@ function postAnimationProcess() {
 		}
 		
 		var wonFinished;
-		if (drawGameEndLayer()) {
+		drawGameEndLayer();
+		if (playerColoredAs(color).finishedAtPlace == 1) {
 			wonFinished = " won!";
-			document.getElementById("sound_won").play();
+			if(playerMe().color === color) {
+				document.getElementById("sound_won").play();
+			}
+			
 		}
 		else {
 			wonFinished = " finished!";
