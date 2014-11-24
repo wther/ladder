@@ -714,6 +714,14 @@ function processAnimations() {
 				var s = playerMe().color === stateChange.playerColor ? "" : "s";
 				showText(playerName(stateChange.playerColor) + " slide" + s  + " down from " + (stateChange.from+1) + " to " + (stateChange.to+1));
 			}
+                        
+            if(stateChange.causedBy === 'PENALTY') {
+                showDice(6);
+                if(!animateFieldClicked) {
+                    showText(playerName(stateChange.playerColor) + " rolled 6 three times");
+                    document.getElementById("sound_diceroll").play();
+                }
+            }
 			
 			//if it's us, we may need to make the user click on the corresponding field only then will the animation be played
 			if(playerMe().color === stateChange.playerColor && justRolled) {

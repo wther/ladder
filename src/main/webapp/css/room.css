@@ -31,6 +31,10 @@ td#playerName {
 	width: 500px;
 	
 }
+td#ready {
+	font-weight: bold;
+	text-indent: 15px;
+}
 td#playerColor {
 	width: 100px;
 	text-align: center;
@@ -82,9 +86,6 @@ td.playerColorColumn {
 	width: 100px;
 }
 
-
-
-
 div.paramRow {
     margin-top: 20px;
     text-align: center;
@@ -105,6 +106,7 @@ div.paramRow div.button-selected {
 
 #buttonRow {
 	display: flex;
+    margin-top: 5px;
 }
 
 #leave {
