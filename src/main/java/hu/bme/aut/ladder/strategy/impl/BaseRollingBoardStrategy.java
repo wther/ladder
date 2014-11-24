@@ -7,7 +7,9 @@ import hu.bme.aut.ladder.data.entity.TunnelEntity;
 import hu.bme.aut.ladder.strategy.BoardStrategy;
 import hu.bme.aut.ladder.strategy.Dice;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for board strategies where players take a turn after
@@ -219,6 +221,27 @@ public abstract class BaseRollingBoardStrategy implements BoardStrategy {
                 return false;
             }
             if(tunnel.getType() == TunnelEntity.Type.LADDER && tunnel.getFromField() == 0){
+                return false;
+            }
+        }
+        
+        // Make sure there are no tunnels starting from the same point,
+        // as in this case the second one would have no effect
+        Set<Integer> tunnelStarts = new HashSet<Integer>();
+        for(TunnelEntity tunnel : board.getTunnels()){
+            final Integer from = tunnel.getFromField();
+            if(tunnelStarts.contains(from)){
+                return false;
+            } else {
+                tunnelStarts.add(from);
+            }
+        }
+        
+        // In order to make the game more FUN, make sure that there are no ladders
+        // leading to the last sqrt(size) fields, so nobody can get too lucky
+        final int noLadderZone = size - (int)Math.sqrt(size) - 1;
+        for(TunnelEntity tunnel : board.getTunnels()){
+            if(tunnel.getType() == TunnelEntity.Type.LADDER && tunnel.getToField() > noLadderZone){
                 return false;
             }
         }
