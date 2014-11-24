@@ -514,10 +514,12 @@ function resourcesLoaded() {
 
 //shows the die with rollValue
 function showDice(rollValue) {
+	if(rollValue < 1 || rollValue > 6) return;
 	for(var i = 0; i < 6; i++) {
 		diceImages[i].css("display", "none");
 	}
 	diceImages[rollValue - 1].css("display", "inline-block");
+	
 }
 
 // earthquake ability used
