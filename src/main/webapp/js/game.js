@@ -608,7 +608,9 @@ function stopRollAnim() {
 var playerMustClickHere;
 
 //detects if the player clicked on the correct field after a roll
+
 function stageClicked(evt) {
+	if(!timeUpClickCounting) return;
 	console.log("stage Clicked");
 	var pos;
 	if(evt.override === undefined) {
