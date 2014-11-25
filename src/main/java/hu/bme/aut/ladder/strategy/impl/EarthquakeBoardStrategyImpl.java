@@ -3,8 +3,11 @@ package hu.bme.aut.ladder.strategy.impl;
 import hu.bme.aut.ladder.data.entity.AbilityEntity;
 import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.PlayerEntity;
+import hu.bme.aut.ladder.data.entity.StateChangeEntity;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +70,17 @@ public class EarthquakeBoardStrategyImpl extends BaseRollingBoardStrategy {
             
             // Reduce the number of earthquakes for this player
             earthquake.setUsesLeft(earthquake.getUsesLeft() - 1);
+            
+            // Earthquakes may screw up the ordering of the state change entities entities,
+            // let's fix that here
+            Collections.sort(board.getStateChanges(), new Comparator<StateChangeEntity>(){
+                @Override
+                public int compare(StateChangeEntity o1, StateChangeEntity o2) {
+                    return o1.getSequenceNumber() - o2.getSequenceNumber();
+                }
+                
+            });
+            
         } else {
             throw new BoardActionNotPermitted("Only ROLL and EARTHQUAKE is permitted by " + this.getClass().getSimpleName());
         }
