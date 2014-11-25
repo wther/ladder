@@ -351,13 +351,6 @@ function drawBoard(board) {
         var to = fieldToPixels(snake.to, board.size, SIZE);
         
         snakeLayer.add(createSnakeImage(from.centerX, from.centerY, to.centerX, to.centerY));
-        
-        snakeLayer.add(new Kinetic.Line({
-            points: [from.centerX, from.centerY, to.centerX, to.centerY],
-            stroke: "green",
-            tension: 1,
-            opacity: 0.5
-        }));
     }
     stage.add(snakeLayer);
     
@@ -369,13 +362,6 @@ function drawBoard(board) {
         var to = fieldToPixels(ladder.to, board.size, SIZE);
         
         ladderLayer.add(createLadderImage(from.centerX, from.centerY, to.centerX, to.centerY));
-        
-        ladderLayer.add(new Kinetic.Line({
-            points: [from.centerX, from.centerY, to.centerX, to.centerY],
-            stroke: "brown",
-            tension: 1,
-            opacity: 0.5
-        }));
     }
     stage.add(ladderLayer);
     
