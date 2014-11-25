@@ -51,10 +51,12 @@ div#container {
 }
 
 #diceDiv {
-	width: 150;
+	width: 150px;
 	float: right;
 }
 
 img.diceImage {
 	display: none;
+	margin-top: -100px;
 }
+
