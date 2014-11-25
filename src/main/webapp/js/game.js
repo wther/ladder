@@ -531,6 +531,7 @@ function actionBeforeProcess() {
 	$("#roll_button").addClass("disabled");
 	$("#earthquake_button").addClass("disabled", "disabled");
 	turnMessageShown = false;
+	stopTimer();
 }
 
 
@@ -736,9 +737,11 @@ function processAnimations() {
 		processing = false;
 		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
 			$("#roll_button").removeClass("disabled");
+			
 			if(!turnMessageShown) {
 				showText("It's your turn!");
 				turnMessageShown = true;
+				startTimer(function() {$('#roll_button').click();}, TIME_FORUSERACTION * 1000);
 			}
 			if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
 				$("#earthquake_button").removeClass("disabled");
@@ -748,6 +751,21 @@ function processAnimations() {
 	}
 	
 }
+
+
+
+var timerId;
+function stopTimer() {
+	clearTimeout(timerId);
+}
+function startTimer(finishFunc, timeout) {
+	
+	if(timerId != undefined) {
+		clearTimeout(timerId);
+	}
+	timerId = setTimeout(finishFunc, timeout);
+}
+
 
 var turnMessageShown = false;
 
