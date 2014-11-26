@@ -15,7 +15,6 @@ var IMGSRC_LADDER = '../images/ladder_';
 var LADDER_IMAGECOUNT = 6;
 
 var LADDER_SIZE_STEP = 80;
-//var ladder_bounds = [100, 150, 200, 400,600,800]
 
 var IMGSRC_SNAKE = '../images/snake_';
 
@@ -85,6 +84,8 @@ function playerColoredAs(color) {
 	}
 }
 
+//the name of the player, returns You, if it's the player that is me
+// it's used for the showText function (the text on bottom of the screen)
 function playerName(color) {
 	var player = playerColoredAs(color);
 	var playerName = player.name;
@@ -146,6 +147,7 @@ function getTokenDim(position, i, boardSize) {
 	};
 }
 
+
 function boardWidth(boardSize) {
 	if(boardSize === undefined) {
 		boardSize = boardData.size;
@@ -157,6 +159,8 @@ function boardWidth(boardSize) {
     return width;
 }
 
+// returns the x,y coordinates of a field number, and the matrix width
+// these coordinates are the pixel independent coordinates (and thus, whole numbers from 0 to width - 1)
 function fieldToVectorPos(field, boardSize) {
 	var width = boardWidth(boardSize);
     
@@ -209,7 +213,6 @@ function pixelToField(x, y) {
 	console.log("x, y: " + x + ", " + y);
 	var width = boardWidth();
 	var pixelSize = SIZE;
-	//var padding = 0.06;
 	
 	var cellWidth = pixelSize / width;
 	var cellHeight = pixelSize / width;
@@ -221,7 +224,7 @@ function pixelToField(x, y) {
 	return position;
 }
 
-// returns a kinetic image
+// returns a kinetic ladder image
 function createLadderImage(fromX, fromY, toX, toY) {
 	
 	var length = getDistance(fromX, fromY, toX, toY);
@@ -334,14 +337,11 @@ function drawBoard(board) {
             }));
             
         }
-        
 
 	// add the layer to the stage
 	stage.add(boardLayer);
 	
 	
-
-        
     // Draw snakes and ladders
     var snakeLayer = new Kinetic.Layer();
     for(var i in board.snakes){
@@ -371,7 +371,6 @@ function drawBoard(board) {
 	playerTokens = {};
 	playerLayer = new Kinetic.Layer();
 	
-	
 	for(var i = 0; i < board.players.length; i++){
 		var player = board.players[i];
 		var Dim = getTokenDim(player.position, i, board.size);
@@ -388,6 +387,7 @@ function drawBoard(board) {
 	}
 	stage.add(playerLayer);
 	
+	//gameEndLayer will show when the player has won/lost
 	gameEndLayer = new Kinetic.Layer();
 	var W = 500;
 	var H = 200;
@@ -498,6 +498,39 @@ function resourcesLoaded() {
 	processAnimations();
 }
 
+//returns true if I (playerMe()) have won, and draws appropriately
+function drawGameEndLayer() {
+	var players = boardData.players;
+	var meWon = false;
+	for(var i = 0; i < players.length; i++) {
+		var player = players[i];
+		if(player.finishedAtPlace == 1) {
+			var kinImage = lostKin;
+			
+			meWon = (playerMe().color === player.color)
+			if(meWon) {
+				kinImage = wonKin;
+			}
+			kinImage.show();
+			gameEndLayer.draw();
+			setTimeout(function() {
+				var tween = new Kinetic.Tween({
+					  node: kinImage,
+					  opacity: 0.5,
+					  duration: 3,
+					  easing: Kinetic.Easings.BackEaseIn
+				});
+				tween.play();
+			}, 3000);
+			if(meWon) {
+				return true;
+			}
+			
+		}
+	}
+	return false;
+}
+
 //shows the die with rollValue
 function showDice(rollValue) {
 	if(rollValue < 1 || rollValue > 6) return;
@@ -514,7 +547,6 @@ function earthquaked() {
     safeProcessAnimations();
 }
 
-var rollAnim;
 
 var justRolled = false;
 //dice is rolled, player has to click on correspondent field to advance
@@ -527,6 +559,7 @@ function rolled() {
 	
 }
 
+//called after a roll/earthquake button is pressed, but before it is processed
 function actionBeforeProcess() {
 	$("#roll_button").addClass("disabled");
 	$("#earthquake_button").addClass("disabled", "disabled");
@@ -548,20 +581,11 @@ function clickFieldBlocking(stateChange) {
 	playerMustClickHere = stateChange.to;
 	animateFieldToBeClicked(playerMustClickHere);
 	
-	timeUpClickCounting = true;
-	setTimeout(function() {
-		timeIsUpFieldClicking(stateChange);
-	}, TIME_FORUSERACTION * 1000);
-	
+	startTimer(stageClicked, {override: true}, TIME_FORUSERACTION * 1000);	
 }
 
-var timeUpClickCounting = false;
-//gets called when no time is left to click on field
-function timeIsUpFieldClicking(stateChange) {
-	if(timeUpClickCounting && processedUntilSequenceNumber < stateChange.sequenceNumber) {
-		stageClicked({override: true});
-	}
-}
+// the kinetic animation for a field after a roll
+var rollAnim;
 
 // animates the area to be clicked within animate
 function animateFieldToBeClicked(pos) {
@@ -596,10 +620,10 @@ function stopRollAnim() {
 //stores the position where the player must click
 var playerMustClickHere;
 
-//detects if the player clicked on the correct field after a roll
-
+//detects if the player clicked on the correct field after a roll, 
+// or gets called with {override: true} if the time is up for the user
 function stageClicked(evt) {
-	if(!timeUpClickCounting) return;
+	if(!timerOn) return;
 	console.log("stage Clicked");
 	var pos;
 	if(evt.override === undefined) {
@@ -612,9 +636,11 @@ function stageClicked(evt) {
 	}
 	
 	if(playerMustClickHere === pos || evt.override) {
+		stopTimer();
 		stopRollAnim();
-		timeUpClickCounting = false;
 		fieldClicked = true;
+		//processing is true, so safeProcessAnimations is useless here, 
+		//but processing is halted so we can make it continue with processAnimations
 		processAnimations();
 	}
 	
@@ -628,11 +654,12 @@ function safeProcessAnimations() {
 	}
 }
 
+//stores if the animation processing is in progress
 var processing = false;
 //storing the last animated stateChange's sequenceNumber 
 var processedUntilSequenceNumber = 0;
 
-//will be used for optimisation - so that the for loop doesn't need to loop through all stateChanges
+//is used for optimisation - so that the for loop doesn't loop through all stateChanges
 var currentArrayIndex = 0;
 
 //returns an array of the next stateChanges that need to be processed
@@ -641,6 +668,7 @@ function getNextStateChanges() {
 	for(var j = currentArrayIndex; j < boardData.stateChanges.length; j++) {
 		var stateChange = boardData.stateChanges[j];
 		if(stateChange.sequenceNumber > processedUntilSequenceNumber) {
+			currentArrayIndex = j;
 			stateChanges.push(stateChange);
 			for(var i = j+1; i < boardData.stateChanges.length; i++) {
 				var otherStateChange = boardData.stateChanges[i];
@@ -658,9 +686,10 @@ function getNextStateChanges() {
 	}
 	return null;
 }
-// if last player animated is the same as current to be animated player, 
-//it is climbing/sliding on a ladder/snake, so no need for a click (clickFieldBlocking)
-var lastPlayerAnimated;
+
+//we animate the next stateChanges with the same sequenceNumber,
+// and when they finish, they will call back this function.
+// It assumpts that stateChanges are ordered by sequenceNumber (ascending)
 function processAnimations() {
 	//animateFieldClicked means the player clicked on the right field, and this time we can animate that stateChange
 	var animateFieldClicked = false;
@@ -675,10 +704,9 @@ function processAnimations() {
 	
 	processing = true;
 	
-	//we animate one animation, and it's onfinish will call this function back
+	
 	var stateChanges = getNextStateChanges();
 	
-
 	if(stateChanges != null) {
 		if(stateChanges[0].causedBy === "EARTHQUAKE") {
 			var s = playerMe().color === stateChanges[0].playerColor ? "" : "s";
@@ -721,7 +749,6 @@ function processAnimations() {
 				clickFieldBlocking(stateChange);
 			}
 			else {
-				lastPlayerAnimated = stateChange.playerColor;
 				animateStateChange(stateChange, boardData, rollMove, postAnimationProcess);
 				processedUntilSequenceNumber = stateChange.sequenceNumber;
 			}
@@ -741,7 +768,7 @@ function processAnimations() {
 			if(!turnMessageShown) {
 				showText("It's your turn!");
 				turnMessageShown = true;
-				startTimer(function() {$('#roll_button').click();}, TIME_FORUSERACTION * 1000);
+				startTimer(function() {$('#roll_button').click();}, {}, TIME_FORUSERACTION * 1000);
 			}
 			if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
 				$("#earthquake_button").removeClass("disabled");
@@ -753,17 +780,19 @@ function processAnimations() {
 }
 
 
-
+//timer for making automatic user roll and user click after some time
 var timerId;
+var timerOn = false;
 function stopTimer() {
+	timerOn = false;
 	clearTimeout(timerId);
 }
-function startTimer(finishFunc, timeout) {
-	
+function startTimer(finishFunc, funcParam, timeout) {
+	timerOn = true;
 	if(timerId != undefined) {
 		clearTimeout(timerId);
 	}
-	timerId = setTimeout(finishFunc, timeout);
+	timerId = setTimeout(function() {finishFunc(funcParam);}, timeout);
 }
 
 
@@ -794,6 +823,8 @@ function animateStateChangesSequentially(stateChanges, board, finishFunc) {
 
 var winnerColor = null;
 var lastStateChange = null;
+//gets called after each animateStateChange's tween animation finishes,
+// reacts to the last events (somebody wins, or finishes)
 function postAnimationProcess() {
 	if (lastStateChange.to === boardData.size - 1) {
 		var color = lastStateChange.playerColor;
@@ -820,41 +851,10 @@ function postAnimationProcess() {
 }
 
 
-//returns true if I (playerMe()) have won, and draws appropriately
-function drawGameEndLayer() {
-	var players = boardData.players;
-	var meWon = false;
-	for(var i = 0; i < players.length; i++) {
-		var player = players[i];
-		if(player.finishedAtPlace == 1) {
-			var kinImage = lostKin;
-			
-			meWon = (playerMe().color === player.color)
-			if(meWon) {
-				kinImage = wonKin;
-			}
-			kinImage.show();
-			gameEndLayer.draw();
-			setTimeout(function() {
-				var tween = new Kinetic.Tween({
-					  node: kinImage,
-					  opacity: 0.5,
-					  duration: 3,
-					  easing: Kinetic.Easings.BackEaseIn
-				});
-				tween.play();
-			}, 3000);
-			if(meWon) {
-				return true;
-			}
-			
-		}
-	}
-	return false;
-}
 
-//rollMove indicates if the move is not a ladder/snake movement and so
-// if passes on a corner it needs to be sequenced
+
+//rollMove indicates if the move is a simple dice roll move and so
+// if it passes around a corner it needs to be sequenced (cut up for several parts)
 function animateStateChange(stateChange, board, rollMove, finishFunc) {
 	lastStateChange = stateChange;
 	var playerToAnimate;
@@ -869,7 +869,8 @@ function animateStateChange(stateChange, board, rollMove, finishFunc) {
 		var Pos1 = fieldToVectorPos(stateChange.from, board.size);
 		var Pos2 = fieldToVectorPos(stateChange.to, board.size);
 		var width = Pos1.W;
-		//passing a corner
+		//passing around a corner, 
+		// the animation might be cut up in max. 3 parts depending on how many corners it passes
 		if(Pos1.Y != Pos2.Y) {
 			var stateChanges = [];
 			var cornerField1 = stateChange.from + (width - 1 - (stateChange.from % width));
@@ -914,6 +915,7 @@ function animateStateChange(stateChange, board, rollMove, finishFunc) {
 	dist /= SIZE / boardWidth(board.size);
 	console.log("SN " + stateChange.sequenceNumber + " ,dist " + dist);
 	
+	// a tween is a transition animation between two states
 	var tween = new Kinetic.Tween({
 		  node: playerToAnimate,
 		  x: toDim.X,
@@ -928,7 +930,8 @@ function animateStateChange(stateChange, board, rollMove, finishFunc) {
 	
 }
 
-//for earthquake
+//for mostly earthquake and other simultaneous actions (that have the same sequenceNumber)
+// like when 2 players land on a snake/ladder after an earthquake
 function animateStateChangesSimultaneously(stateChanges, board) {
 	var maxCount = stateChanges.length;
 	var count = 0;
@@ -971,6 +974,8 @@ function animateStateChangesSimultaneously(stateChanges, board) {
 	}
 }
 
+// this function displays important game events on the bottom of the screen in two lines
+//, like when somebody rolls, or somebody finishes
 var lastLine = "";
 function showText(text) {
 	$("#gameText").html(lastLine + "<br/>"+ text);
@@ -1012,12 +1017,9 @@ $('#roll_button').click(function(){
         data: {action: 'ROLL'},
         method: 'POST',
         success: function(data){
-//            drawBoard(data);
-//            processAnimations();
         	boardData = data;
         	actionBeforeProcess();
         	rolled();
-        	
         }
     });
 });
@@ -1031,8 +1033,6 @@ $('#earthquake_button').click(function(){
         data: {action: 'EARTHQUAKE'},
         method: 'POST',
         success: function(data){
-            //@TODO refactor
-        	
             boardData = data;
             actionBeforeProcess();
             earthquaked();
@@ -1053,4 +1053,5 @@ $('#leave_button').click(function() {
 
 refreshBoard();
 
+//the board data needs to be fetched every now and then
 setInterval(refreshBoardData, 1500);
