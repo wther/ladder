@@ -495,7 +495,7 @@ function loadResources() {
 //this func is called when images are loaded
 function resourcesLoaded() {
 	drawBoard(boardData);
-	processAnimations();
+	safeProcessAnimations();
 }
 
 //returns true if I (playerMe()) have won, and draws appropriately
@@ -552,11 +552,7 @@ var justRolled = false;
 //dice is rolled, player has to click on correspondent field to advance
 function rolled() {
 	justRolled = true;
-	var stateChange = getNextStateChanges()[0];
-	if(playerMe().color === stateChange.playerColor) {
-		safeProcessAnimations();
-	}
-	
+	safeProcessAnimations();
 }
 
 //called after a roll/earthquake button is pressed, but before it is processed
