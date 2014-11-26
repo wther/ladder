@@ -8,7 +8,6 @@ table#gameList {
 	width: 600px;
 }
 tbody {
-	height: 400px;
 	overflow: auto;
 }
 
