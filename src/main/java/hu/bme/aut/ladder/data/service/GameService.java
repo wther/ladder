@@ -1,10 +1,13 @@
 package hu.bme.aut.ladder.data.service;
 
 import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
+import hu.bme.aut.ladder.data.entity.BoardEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity;
 import hu.bme.aut.ladder.data.entity.GameEntity.GameState;
+import hu.bme.aut.ladder.data.entity.PlayerEntity;
 import hu.bme.aut.ladder.data.entity.UserEntity;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
+import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
 import java.util.List;
 
 /**
@@ -73,6 +76,18 @@ public interface GameService {
      * @return 
      */
     List<UserEntity> findUsersInGame(GameEntity game);    
+    
+    /**
+     * Execute action 
+     * 
+     * @param board Board to modify
+     * @param player Initiator of the action
+     * @param action Action to be taken
+     * @throws hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted
+     * 
+     * @throws hu.bme.aut.ladder.strategy.BoardActionNotPermitted
+     */
+    void executeAction(GameEntity game, PlayerEntity player, String action) throws BoardActionNotPermitted;
     
     /**
      * Remove not responsive users from the game

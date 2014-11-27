@@ -1,6 +1,5 @@
 package hu.bme.aut.ladder.data.service.impl;
 
-import hu.bme.aut.ladder.controller.BoardController;
 import hu.bme.aut.ladder.controller.dto.GameParamsDTO;
 import hu.bme.aut.ladder.data.builder.BoardBuilder;
 import hu.bme.aut.ladder.data.entity.AbilityEntity;
@@ -379,5 +378,22 @@ public class GameServiceImpl implements GameService {
                 }
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void executeAction(GameEntity game, PlayerEntity player, String action) throws BoardActionNotPermitted {
+        if(game == null){
+            throw new IllegalArgumentException("game is null");
+        }
+        
+        if(game.getBoard() == null){
+            throw new BoardActionNotPermitted("Invalid state, board is in " + game.getGameState());
+        }
+        
+        boardStrategy.executePlayerAction(game.getBoard(), player, action);
+        repository.save(game);
     }
 }
