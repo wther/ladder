@@ -3,7 +3,6 @@ package hu.bme.aut.ladder.controller;
 import hu.bme.aut.ladder.controller.dto.BoardDTO;
 import static hu.bme.aut.ladder.data.entity.GameEntity.GameState.BOARD_STARTED;
 import hu.bme.aut.ladder.data.entity.UserEntity;
-import hu.bme.aut.ladder.data.service.BoardService;
 import hu.bme.aut.ladder.data.service.GameService;
 import hu.bme.aut.ladder.data.service.exception.GameActionNotAllowedException;
 import hu.bme.aut.ladder.strategy.exception.BoardActionNotPermitted;
@@ -44,12 +43,6 @@ public class BoardController extends BaseGameController {
      */
     public static final String BOARD_ACTION_URI = "/board/action";
 
-    /**
-     * Board strategy for manipulation of boards
-     */
-    @Autowired
-    private BoardService boardService;
-    
     /**
      * Game service used to manage the game
      */
@@ -92,7 +85,7 @@ public class BoardController extends BaseGameController {
         
         
         LOGGER.info("{} is attempting to make a move: {}", user, action);
-        boardService.executeAction(user.getGame().getBoard(), user.getPlayer(), action);
+        gameService.executeAction(user.getGame(), user.getPlayer(), action);
         
         final BoardDTO retVal = dtoFromBoard(user.getGame().getBoard(), user);
         
