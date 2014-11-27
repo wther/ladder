@@ -5,21 +5,21 @@ var SIZE = 600;
 
 MAX_PLAYERS = 4;
 
-var IMGSRC_RED = '../images/token_red.png';
-var IMGSRC_GREEN = '../images/token_green.png';
-var IMGSRC_BLUE = '../images/token_blue.png';
-var IMGSRC_YELLOW = '../images/token_yellow.png';
+var IMGSRC_RED = 'images/token_red.png';
+var IMGSRC_GREEN = 'images/token_green.png';
+var IMGSRC_BLUE = 'images/token_blue.png';
+var IMGSRC_YELLOW = 'images/token_yellow.png';
 
-var IMGSRC_LADDER = '../images/ladder_';
+var IMGSRC_LADDER = 'images/ladder_';
 
 var LADDER_IMAGECOUNT = 6;
 
 var LADDER_SIZE_STEP = 80;
 
-var IMGSRC_SNAKE = '../images/snake_';
+var IMGSRC_SNAKE = 'images/snake_';
 
-var IMGSRC_WON = '../images/won.png';
-var IMGSRC_LOST = '../images/lost.png';
+var IMGSRC_WON = 'images/won.png';
+var IMGSRC_LOST = 'images/lost.png';
 
 var SNAKE_IMAGECOUNT = 2;
 var SNAKE_SIZE_STEP = 400;
