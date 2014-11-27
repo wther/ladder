@@ -759,15 +759,18 @@ function processAnimations() {
 	else {
 		processing = false;
 		if(boardData.nextPlayer == null || boardData.nextPlayer.color === playerMe().color) {
-			$("#roll_button").removeClass("disabled");
-			
 			if(!turnMessageShown) {
 				showText("It's your turn!");
 				turnMessageShown = true;
-				startTimer(function() {$('#roll_button').click();}, {}, TIME_FORUSERACTION * 1000);
+				if(!playerMe().isFinished) {
+					startTimer(function() {$('#roll_button').click();}, {}, TIME_FORUSERACTION * 1000);
+				}
 			}
-			if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
-				$("#earthquake_button").removeClass("disabled");
+			if(!playerMe().isFinished) {
+				$("#roll_button").removeClass("disabled");
+				if(playerMe().abilityUsesLeft.EARTHQUAKE > 0) {
+					$("#earthquake_button").removeClass("disabled");
+				}
 			}
 		}
 		
